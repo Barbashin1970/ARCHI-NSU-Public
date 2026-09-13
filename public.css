@@ -1,0 +1,233 @@
+/* Добавки визитки поверх стилей изделия.
+ *
+ * Что делает: оформляет то, чего в изделии нет, — состав поставки, форму
+ *             заявки и кнопку в шапке.
+ * Кто зовёт:  index.html, politika.html, 404.html — подключением после style.css.
+ *
+ * ПОЧЕМУ ОТДЕЛЬНЫМ ФАЙЛОМ, А НЕ ПРАВКОЙ style.css. Файл стилей изделия
+ * копируется сюда как есть, и это единственный способ переносить правки
+ * оформления из изделия одной командой (`obnovit-iz-izdeliya.sh`). Правка
+ * внутри копии была бы затёрта при первом же переносе — молча.
+ *
+ * Отсюда правило: в style.css здесь не меняется ни строки. Всё, что нужно
+ * визитке, живёт в этом файле.
+ */
+
+/* --- Кнопка в шапке ------------------------------------------------------ */
+
+.shapka .razdely .knopka-shapki {
+  background: #1d4ed8;
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.45rem 0.9rem;
+}
+
+.shapka .razdely .knopka-shapki:hover { background: #1e40af; }
+
+/* --- Состав поставки ----------------------------------------------------- */
+
+.postavka { background: #f8fafc; border-top: 1px solid #e2e8f0; }
+
+.podzagolovok-razdela {
+  max-width: 46rem;
+  color: #475569;
+  font-size: 1.05rem;
+}
+
+.sostav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem;
+  margin: 1.6rem 0 1.2rem;
+}
+
+.sostav-punkt {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.1rem 1.2rem;
+}
+
+.sostav-punkt b {
+  display: block;
+  font-size: 1.35rem;
+  color: #1e3a8a;
+  margin-bottom: 0.35rem;
+}
+
+.sostav-punkt span { color: #475569; font-size: 0.95rem; line-height: 1.5; }
+
+.sostav-ogovorka {
+  max-width: 46rem;
+  color: #475569;
+  border-left: 3px solid #cbd5e1;
+  padding-left: 1rem;
+}
+
+/* --- Форма заявки -------------------------------------------------------- */
+
+.zayavka { background: #fff; border-top: 1px solid #e2e8f0; }
+
+.forma {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 1rem 1.2rem;
+  max-width: 52rem;
+  margin-top: 1.6rem;
+}
+
+.pole-shirokoe { grid-column: 1 / -1; }
+
+.pole { display: flex; flex-direction: column; gap: 0.35rem; }
+
+.pole > span { font-size: 0.92rem; color: #334155; font-weight: 600; }
+.pole > span i { font-weight: 400; color: #64748b; font-style: normal; }
+
+.pole input,
+.pole select,
+.pole textarea {
+  font: inherit;
+  color: #0f172a;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.6rem 0.7rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.pole textarea { resize: vertical; min-height: 4.5rem; }
+
+.pole input:focus,
+.pole select:focus,
+.pole textarea:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+  border-color: #2563eb;
+}
+
+/* Поле с ошибкой помечается ЦВЕТОМ И ТЕКСТОМ, а не одним цветом: рамка
+   у того, кто различает цвета хуже, не читается вовсе. */
+.pole.ne-tak input,
+.pole.ne-tak select { border-color: #b91c1c; background: #fef2f2; }
+
+.pole .zamechanie { font-size: 0.85rem; color: #b91c1c; }
+
+.soglasie {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  font-size: 0.92rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.soglasie input { margin-top: 0.2rem; flex: 0 0 auto; }
+
+/* Ловушка для роботов. Не `display: none`: часть рассыльщиков такие поля
+   пропускает намеренно. Поле остаётся в разметке, но уводится за экран
+   и снимается с обхода клавиатурой. */
+.pole-lovushka {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.otpravka { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+
+.knopka-zayavki {
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: #1d4ed8;
+  border: 0;
+  border-radius: 10px;
+  padding: 0.75rem 1.6rem;
+  cursor: pointer;
+}
+
+.knopka-zayavki:hover { background: #1e40af; }
+.knopka-zayavki:disabled { background: #94a3b8; cursor: progress; }
+
+.otvet-formy { margin: 0; font-size: 0.95rem; }
+.otvet-formy.udalos { color: #15803d; font-weight: 600; }
+.otvet-formy.ne-udalos { color: #b91c1c; }
+
+.zapaska { margin-top: 1.2rem; color: #64748b; font-size: 0.92rem; }
+
+/* --- Отдельные страницы: политика и «адреса нет» ------------------------- */
+
+.tekstovaya-stranica {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 3rem 1.2rem 4rem;
+}
+
+.tekstovaya-stranica h1 { margin-bottom: 0.6rem; }
+.tekstovaya-stranica h2 { margin-top: 2rem; font-size: 1.15rem; }
+.tekstovaya-stranica p,
+.tekstovaya-stranica li { color: #334155; line-height: 1.65; }
+.tekstovaya-stranica .nazad { display: inline-block; margin-top: 2rem; }
+
+@media (max-width: 640px) {
+  .forma { grid-template-columns: 1fr; }
+}
+
+/* --- Как это выглядит ---------------------------------------------------- */
+
+.vid { background: #fff; border-top: 1px solid #e2e8f0; }
+
+.snimok { margin: 1.8rem 0; }
+
+.snimok img {
+  width: 100%;
+  height: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  display: block;
+}
+
+.snimok figcaption,
+.snimok-chata figcaption {
+  margin-top: 0.7rem;
+  color: #475569;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  max-width: 46rem;
+}
+
+.chat-snimki {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1.4rem;
+  margin: 2rem 0 1.4rem;
+  /* Больше трёх телефонов в ряд не ставится: четвёртый ужимает каждый
+     настолько, что текст сообщения перестаёт читаться, — а читаемость
+     сообщения и есть то, ради чего снимки здесь стоят. */
+  max-width: 54rem;
+}
+
+.snimok-chata { margin: 0; }
+
+.snimok-chata img {
+  width: 100%;
+  height: auto;
+  border-radius: 14px;
+  border: 1px solid #1e293b;
+  display: block;
+}
+
+.snimok-chata figcaption {
+  text-align: center;
+  font-size: 0.9rem;
+  margin-top: 0.6rem;
+}
+
+.snimok-chata code {
+  background: #f1f5f9;
+  border-radius: 4px;
+  padding: 0.05rem 0.3rem;
+}

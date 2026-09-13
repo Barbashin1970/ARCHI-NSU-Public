@@ -1,0 +1,6 @@
+# Визитка Платформы АРХИ. Индексируется целиком, кроме служебного.
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://arhi-nsu.vercel.app/sitemap.xml

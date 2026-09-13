@@ -1,0 +1,2369 @@
+/* Оформление страниц компактной Платформы АРХИ.
+ *
+ * Вид взят из студии донорского проекта NSK_OpenData_Bot: палитра slate,
+ * карточки со скруглением, тёмная шапка с переходом, значки состояний.
+ * Четыре значка донора ложатся ровно на наши исходы, включая «нет данных»,
+ * которому у него отвечает нейтральный badge-off.
+ *
+ * ЧТО ПРИ ПЕРЕНОСЕ ИЗМЕНЕНО И ПОЧЕМУ. Донор подключает Tailwind
+ * с внешнего CDN одной строкой. Здесь так нельзя: изделие показывают
+ * с ноутбука и оно обязано работать без сети, кроме обращений к Plan-R
+ * и Telegram. Поэтому взят вид, а не средство: те же цвета и те же формы
+ * записаны местным файлом. Тот же приём, что предписан спецификацией
+ * для правки порогов — берём устройство, проводку пишем заново.
+ *
+ * Ничего свежее того, что умеет Safari: страница обязана открыться
+ * в любом браузере, который окажется на машине показывающего.
+ */
+
+:root {
+    color-scheme: light dark;
+
+    /* Палитра slate донорского проекта */
+    --slate-50:  #f8fafc;
+    --slate-100: #f1f5f9;
+    --slate-200: #e2e8f0;
+    --slate-400: #94a3b8;
+    --slate-500: #64748b;
+    --slate-600: #475569;
+    --slate-700: #334155;
+    --slate-800: #1e293b;
+    --slate-900: #0f172a;
+    --blue-600:  #2563eb;
+    --blue-700:  #1d4ed8;
+    --blue-800:  #1e40af;
+
+    /* Подложка закреплённой шапки при прокрутке. Держится отдельной разметкой,
+       потому что в тёмной теме меняется, а прозрачность остаётся той же. */
+    --shapka-prokruchena: rgba(248, 250, 252, 0.82);
+
+    --fon: var(--slate-50);
+    --fon-kartochki: #ffffff;
+    --fon-vydelen: var(--slate-100);
+    --tekst: var(--slate-900);
+    --tekst-tusklyy: var(--slate-500);
+    --granica: var(--slate-200);
+    --akcent: var(--blue-600);
+
+    --shirina: 64rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --fon: #0d1117;
+        --fon-kartochki: #161b22;
+        --fon-vydelen: #1c2129;
+        --tekst: #e6edf3;
+        --tekst-tusklyy: #8b949e;
+        --granica: #2d333b;
+        --akcent: #58a6ff;
+        --shapka-prokruchena: rgba(13, 17, 23, 0.82);
+    }
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--fon);
+    color: var(--tekst);
+    font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.polosa {
+    max-width: var(--shirina);
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* --- Шапка: синяя, закреплённая, при прокрутке — полупрозрачная ---------
+ *
+ * Наверху страницы шапка синяя и плотная: она держит внимание и отделяет
+ * изделие от белого листа. При прокрутке синева уходит — вместо неё подложка
+ * цвета страницы с размытием. Причина не в моде: на показе под шапкой идёт
+ * содержательное, и плотная синяя полоса поверх него отвлекает от чисел.
+ *
+ * Шапка закреплена (position: sticky), поэтому переходы между разделами
+ * остаются на экране при любой длине страницы и не уезжают вверх.
+ */
+
+header.shapka {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: linear-gradient(to right, var(--blue-800), var(--blue-600));
+    color: #ffffff;
+    padding: 0.85rem 0;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    border-bottom: 1px solid transparent;
+    /* Переход по всем трём разметкам сразу: цвет фона, цвет текста, рамка.
+       Иначе при прокрутке текст меняет цвет скачком, а фон плавно. */
+    transition: background 0.22s ease, color 0.22s ease,
+                box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+header.shapka.prokruchena {
+    background: var(--shapka-prokruchena);
+    color: var(--tekst);
+    box-shadow: none;
+    border-bottom-color: var(--granica);
+    /* Префикс нужен Safari: без него подложка будет просто полупрозрачной,
+       без размытия, и текст под ней станет читаться сквозь шапку. */
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    backdrop-filter: saturate(180%) blur(12px);
+}
+
+/* Запас, если браузер размытия не умеет: подложка делается плотнее,
+   иначе содержимое просвечивает и мешает читать переходы. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    header.shapka.prokruchena { background: var(--fon); }
+}
+
+/* Тем, кто просил уменьшить движение, переход не показываем. */
+@media (prefers-reduced-motion: reduce) {
+    header.shapka { transition: none; }
+}
+
+header.shapka .polosa {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.imya-izdeliya {
+    font-weight: 700;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    /* Название не сжимается и не переносится. Шапка — полоса с гибкой
+       раскладкой, и без этого при длинном перечне разделов «Платформа АРХИ»
+       ломалось на две строки, а полоса вырастала вдвое. */
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+/* Знак изделия: ∀, квантор всеобщности. Изделие исполняет регламент
+   по КАЖДОМУ объекту портфеля, и «нет данных» тоже есть исход, а не молчание.
+   Знак вписан в разметку страницы, а не подгружается файлом: изделие
+   показывают с ноутбука, и лишнее обращение к сети здесь ни к чему.
+   Буква нарисована линиями, а не текстом: текстовый ∀ зависел бы от шрифта
+   на чужой машине, а её состав заранее неизвестен. */
+.znak-izdeliya {
+    width: 1.45rem;
+    height: 1.45rem;
+    flex: none;
+    display: block;
+}
+
+/* Цвета знака заданы атрибутами внутри самого SVG — белый квадрат, синяя
+   буква. Здесь они только МЕНЯЮТСЯ МЕСТАМИ при прокрутке: шапка светлеет,
+   и белый квадрат на светлом исчез бы. */
+header.shapka.prokruchena .znak-izdeliya rect { fill: var(--akcent); }
+header.shapka.prokruchena .znak-izdeliya g { stroke: #ffffff; }
+
+.imya-izdeliya .redakciya {
+    font-weight: 400;
+    font-size: 0.75rem;
+    opacity: 0.7;
+    border-left: 1px solid currentColor;
+    padding-left: 0.5rem;
+    white-space: nowrap;
+}
+
+nav.razdely { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+/* Цвет переходов наследуется от шапки: она сама меняет свой color при
+   прокрутке, и кнопки следуют за ней. Отдельных правил на каждое состояние
+   не заводится — иначе их два места правды и они разъедутся. */
+nav.razdely a {
+    color: inherit;
+    opacity: 0.72;
+    text-decoration: none;
+    font-size: 0.82rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 8px;
+    transition: background 0.15s, opacity 0.15s;
+}
+
+nav.razdely a:hover { opacity: 1; background: rgba(127, 127, 127, 0.16); }
+
+nav.razdely a[aria-current="page"] {
+    opacity: 1;
+    font-weight: 600;
+    background: rgba(127, 127, 127, 0.18);
+}
+
+nav.razdely a[aria-disabled="true"] { opacity: 0.35; pointer-events: none; }
+
+/* --- Значки состояний. Четвёрка донора под наши исходы ----------------- */
+
+.znachok {
+    display: inline-block;
+    padding: 1px 9px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.znachok-norma      { background: #dcfce7; color: #166534; }  /* badge-ok   */
+.znachok-vnimanie   { background: #fef9c3; color: #854d0e; }  /* badge-warn */
+.znachok-kritichno  { background: #fee2e2; color: #991b1b; }  /* badge-miss */
+.znachok-net-dannyh { background: #f1f5f9; color: #64748b; }  /* badge-off  */
+
+@media (prefers-color-scheme: dark) {
+    .znachok-norma      { background: #14321f; color: #6bbf8a; }
+    .znachok-vnimanie   { background: #33280a; color: #e0a44a; }
+    .znachok-kritichno  { background: #3a1717; color: #e07070; }
+    .znachok-net-dannyh { background: #23282f; color: #8b949e; }
+}
+
+/* --- Заглавный блок ----------------------------------------------------
+ *
+ * Две зоны: слева текст на синем переходе, справа панель со снимками экрана
+ * системы-источника. Подробное обоснование состава — в разметке index.html,
+ * над самим блоком; здесь только то, что касается вида.
+ *
+ * ТЕКСТ НИКОГДА НЕ ЛОЖИТСЯ ПОВЕРХ СНИМКОВ. Прежняя редакция ставила картинку
+ * фоном и гасила её затемнением, чтобы белые буквы читались. Со снимком
+ * интерфейса так нельзя: затемнение, достаточное для текста, стирает мелкие
+ * буквы снимка, и остаётся серое пятно вместо доказательства. Поэтому зоны
+ * разведены, а затемнение снято вместе с фоновым изображением.
+ *
+ * Подложка — тот же синий переход, что и у шапки. Панель со снимками может
+ * не доехать; блок обязан остаться целым, а заголовок — читаемым.
+ */
+
+.geroy {
+    position: relative;
+    isolation: isolate;
+    background: linear-gradient(to right, var(--blue-800), var(--blue-600));
+    color: #ffffff;
+    overflow: hidden;
+    min-height: 20rem;
+    display: flex;
+    align-items: flex-end;
+}
+
+/* Изображение подложки. `cover`, а не `contain`: полоса обязана быть
+ * заполнена целиком при любых пропорциях снимка.
+ *
+ * Точка привязки смещена ВПРАВО и ВВЕРХ под композицию снимка: содержательное
+ * в нём — человек и два монитора — стоит справа, а левая половина пуста.
+ * Туда и ложится текст. При обрезке по центру сюжет уезжал бы под заголовок,
+ * и оба мешали бы друг другу.
+ */
+.geroy-kartinka {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 70% 35%;
+    z-index: -2;
+}
+
+.geroy-zatemnenie {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    /* Два перехода с разными задачами. Снизу вверх — общее приглушение, чтобы
+       белый текст держался на любом снимке. Слева направо — главный: он гасит
+       левую половину, где идёт текст, и отпускает правую, где сюжет. Прежние
+       доли (0,55 и до нуля к 62 %) рассчитывались на снимок со светлым небом;
+       под нынешний, тёмный и с сюжетом справа, левая сторона плотнее,
+       а правая почти не трогается. */
+    background:
+        linear-gradient(to top, rgba(9, 20, 45, 0.78) 0%,
+                                rgba(9, 20, 45, 0.42) 45%,
+                                rgba(9, 20, 45, 0.12) 78%,
+                                rgba(9, 20, 45, 0.04) 100%),
+        linear-gradient(to right, rgba(9, 20, 45, 0.88) 0%,
+                                  rgba(9, 20, 45, 0.62) 38%,
+                                  rgba(9, 20, 45, 0.1) 72%,
+                                  rgba(9, 20, 45, 0) 100%);
+}
+
+.geroy-soderzhimoe { padding: 3rem 1.5rem 2.25rem; width: 100%; }
+
+/* Текст занимает левую половину полосы и правее не идёт: справа на снимке
+   сюжет, и заголовок поверх него читался бы хуже, а сам снимок потерял бы
+   смысл. Ширина заодно держит строку в разумной длине. */
+.geroy-tekst { max-width: 40rem; }
+
+.geroy .obozn { color: rgba(255, 255, 255, 0.72); }
+
+.geroy h1 {
+    color: #ffffff;
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35);
+}
+
+.geroy .cel { color: rgba(255, 255, 255, 0.9); }
+
+/* --- Заключительная полоса: чего ждать от внедрения ----------------------
+ *
+ * Устроена не так, как заглавная, и различие существенное.
+ *
+ * СНИМОК НЕ ОБРЕЗАЕТСЯ. В заглавной полосе высоту задаёт текст, а снимок
+ * подрезается под неё (`object-fit: cover`). Здесь наоборот: высоту задаёт
+ * снимок, показанный целиком, а текст ложится поверх. Обрезка отняла бы
+ * у него и кран, и здание — то есть всё, ради чего он тут стоит.
+ *
+ * Следствие: на узком экране снимок становится низким, а текста в полосе
+ * много — три колонки и подвал. Поэтому ниже 60rem наложение отменяется:
+ * снимок остаётся картинкой, текст идёт под ним на синем. Растягивать
+ * снимок по высоте нельзя — это и есть обрезка, только незаметная.
+ *
+ * ЗАТЕМНЕНИЕ ВДВОЕ СЛАБЕЕ прежнего (было 0,9 / 0,78 / 0,9). Плотность
+ * подбиралась под заголовки, а от неё снимок переставал читаться вовсе —
+ * оставалось тёмное пятно. Теперь общая плотность умеренная, а отдельный
+ * переход добавлен только внизу, где идут тонкие светлые строки подвала.
+ */
+.itog {
+    position: relative;
+    isolation: isolate;
+    background: linear-gradient(to right, var(--blue-800), var(--blue-600));
+    color: #ffffff;
+    overflow: hidden;
+    margin-top: 3rem;
+    /* Снимок и текст лежат в ОДНОЙ клетке сетки, и высота полосы равна
+     * большему из двух. Прежде снимок стоял в потоке и задавал высоту один:
+     * текст, положенный поверх него абсолютно, в неё не помещался и молча
+     * обрезался сверху. Правка 12.09.2026, когда в полосу добавились числа
+     * ожидаемого эффекта: содержимое переросло снимок на узком экране.
+     *
+     * Если снимок не растянется (старый браузер), под текстом останется синяя
+     * заливка полосы — читаемость не страдает, теряется только картинка. */
+    display: grid;
+}
+
+.itog-kartinka {
+    grid-area: 1 / 1;
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* Соотношение сторон снимка: пока содержимое ниже, высоту задаёт оно. */
+    aspect-ratio: 1408 / 768;
+    object-fit: cover;
+}
+
+.itog-zatemnenie {
+    position: absolute;
+    inset: 0;
+    background:
+        /* Низ: под тонкими строками подвала. Усилено 12.09.2026 вместе
+           с переводом текста в чистый белый — читаемость держится обоими
+           концами сразу, светлотой букв и плотностью подложки. */
+        linear-gradient(to bottom, rgba(9, 20, 45, 0) 45%,
+                                   rgba(9, 20, 45, 0.55) 75%,
+                                   rgba(9, 20, 45, 0.82) 100%),
+        /* Общее приглушение — половина прежнего. */
+        linear-gradient(to bottom, rgba(9, 20, 45, 0.45) 0%,
+                                   rgba(9, 20, 45, 0.39) 50%,
+                                   rgba(9, 20, 45, 0.45) 100%);
+}
+
+/* Содержимое лежит поверх снимка и прижато к низу: верх снимка — небо
+   и кран, и закрывать их текстом незачем. */
+.itog-soderzhimoe {
+    grid-area: 1 / 1;
+    align-self: end;
+    /* ПОЗИЦИОНИРОВАНИЕ ЗДЕСЬ РАДИ ПОРЯДКА ОТРИСОВКИ, а не ради смещения.
+     *
+     * Затемнение лежит абсолютно, а абсолютное рисуется поверх обычного —
+     * независимо от порядка в разметке. Пока текст сам был абсолютным, он
+     * шёл после затемнения и оказывался сверху. Переведя полосу на сетку
+     * (12.09.2026), я сделал текст обычным потоком — и затемнение накрыло
+     * его вуалью: белые буквы стали выглядеть серыми, тем сильнее, чем ниже
+     * по полосе, потому что к низу вуаль плотнее. Ровно на это и пожаловался
+     * владелец: «внизу совсем плохо читается».
+     *
+     * Одна строка возвращает текст наверх стопки. Без неё сколько ни
+     * повышай светлоту шрифта — его гасит слой поверх. */
+    position: relative;
+    z-index: 1;
+    /* Тень под буквами — страховка от самого снимка. Затемнение выравнивает
+       фон в среднем, но не в каждой точке: на светлом участке белая строка
+       всё равно спорит с подложкой. Тень мягкая и цвета подложки, поэтому
+       на тёмном не видна вовсе, а на светлом держит край буквы. */
+    text-shadow: 0 1px 3px rgba(9, 20, 45, 0.55);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    /* Боковые поля повторяют `.polosa`: у абсолютно расположенного блока
+       её собственный отступ перебивается этим правилом, и без повтора текст
+       прилипал бы к краю экрана. */
+    padding: 2.75rem 1.5rem 1.75rem;
+}
+
+.itog h2 {
+    color: #ffffff;
+    margin: 0 0 1.5rem;
+}
+
+.itogi {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 1.5rem;
+}
+
+.itog-punkt h3 {
+    margin: 0 0 0.45rem;
+    font-size: 1rem;
+    color: #ffffff;
+}
+
+/* ЦВЕТ ТЕКСТА НА СНИМКЕ — ЧИСТО БЕЛЫЙ, а не приглушённый.
+ *
+ * Правка 12.09.2026 по замечанию владельца: на полупрозрачном белом мелкие
+ * строки тонули в снимке. Разница между заголовком и пояснением держится
+ * теперь КЕГЛЕМ И НАСЫЩЕННОСТЬЮ, а не прозрачностью: на однотонной подложке
+ * приглушение читается как оттенок, на фотографии — как нечитаемость.
+ * Приглушать текст поверх снимка вообще нельзя: подложка под ним не ровная,
+ * и там, где снимок светлее, буквы пропадают совсем. */
+.itog-punkt p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #ffffff;
+}
+
+/* --- Метка режима показа в шапке ----------------------------------------
+ *
+ * Спокойная, а не тревожная: режим показа — это объявленное состояние,
+ * а не отказ. Красная метка на каждой странице читалась бы как поломка
+ * и обесценила бы показ ровно в тот момент, когда изделие смотрят впервые.
+ */
+.metka-pokaza {
+    align-self: center;
+    padding: 0.2rem 0.6rem;
+    border: 1px solid var(--granica);
+    border-radius: 999px;
+    background: var(--fon-vydelen);
+    color: var(--tekst-tusklyy);
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    cursor: help;
+}
+
+/* --- Ожидаемый эффект в числах ------------------------------------------
+ *
+ * Три числа над подвалом. Набраны крупно и светлее текста вокруг: их читают
+ * вместо всего остального, если больше ничего не читают.
+ *
+ * Основание под ними НЕ мельче подвала и не слабее по цвету. Число без
+ * основания на такой полосе — реклама; мелкая сноска под крупной цифрой
+ * читается как попытка спрятать оговорку, а прятать здесь нечего.
+ */
+.effekt {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.75rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.effekt-punkt b {
+    display: block;
+    font-size: 1.45rem;
+    font-weight: 650;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: #ffffff;
+}
+
+.effekt-punkt span {
+    display: block;
+    margin-top: 0.3rem;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: #ffffff;
+}
+
+.effekt-osnovanie {
+    margin: 1.1rem 0 0;
+    max-width: 62rem;
+    font-size: 0.84rem;
+    line-height: 1.55;
+    color: #ffffff;
+}
+
+.effekt-osnovanie b { color: #ffffff; font-weight: 600; }
+
+.effekt-osnovanie a {
+    color: #ffffff;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+}
+
+/* Подвал внутри полосы: та же роль, что у прежнего белого, но на снимке. */
+.itog-podval {
+    margin-top: 1.75rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.22);
+    font-size: 0.84rem;
+    line-height: 1.5;
+    color: #ffffff;
+}
+
+.itog-podval p { margin: 0 0 0.4rem; }
+.itog-podval p:last-child { margin-bottom: 0; }
+
+/* Узкий экран: наложения нет — снимок сверху, текст под ним на синем.
+   Иначе три колонки и подвал не умещаются в низкую полосу. */
+@media (max-width: 60rem) {
+    /* Поток вместо наложения: снимок сверху, текст под ним на синем. */
+    .itog { display: block; }
+    .itog-kartinka { height: auto; }
+    .itog-soderzhimoe {
+        padding: 1.75rem 1.5rem 2rem;
+    }
+    .itog-zatemnenie { display: none; }
+    .itog-kartinka { filter: brightness(0.82); }
+}
+
+/* --- Снимки системы-источника в разделе «Объекты» ------------------------
+ *
+ * Вложенная раскладушка внутри раздела: доказательство происхождения нужно
+ * не каждый день, а тогда, когда спросили. Свёрнутое состояние — рабочее.
+ */
+.snimki-istochnika {
+    margin-top: 1.25rem;
+    border-top: 1px solid var(--granica);
+    padding-top: 0.85rem;
+}
+
+.snimki-istochnika > summary {
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--blue-600);
+    list-style: none;
+}
+
+.snimki-istochnika > summary::-webkit-details-marker { display: none; }
+
+/* Треугольник рисуется сам: так он одинаков во всех браузерах и не зависит
+   от того, поддержан ли `list-style` у summary. */
+.snimki-istochnika > summary::before {
+    content: "▸";
+    display: inline-block;
+    margin-right: 0.45rem;
+    transition: transform 0.12s;
+}
+
+.snimki-istochnika[open] > summary::before { transform: rotate(90deg); }
+
+.snimki-ryad {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+    gap: 1.1rem;
+    margin-top: 0.9rem;
+}
+
+.snimki-ryad figure { margin: 0; }
+
+.snimki-ryad img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--granica);
+    border-radius: 0.4rem;
+    background: #ffffff;
+}
+
+.snimki-ryad figcaption {
+    margin-top: 0.45rem;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--tekst-tusklyy);
+}
+
+/* Назначение и схема — двумя столбцами. Текст короче рисунка вдвое, поэтому
+   выравнивание по середине: по верху абзац висел бы над длинным белым полем.
+   Ниже 58rem столбцы складываются сами — текст первым, он несущий. */
+.naznachenie {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem 2rem;
+    align-items: center;
+}
+
+.naznachenie-tekst { flex: 1 1 24rem; min-width: 0; }
+.naznachenie-tekst h2 { margin-top: 0; }
+
+/* За чем следит изделие. Значка списка нет: у каждого пункта первые слова
+   набраны полужирным и сами служат меткой, а точка перед ними — лишний шум. */
+.chto-sledit {
+    list-style: none;
+    margin: 0.7rem 0 0.9rem;
+    padding: 0;
+    display: grid;
+    gap: 0.6rem;
+}
+
+.chto-sledit li {
+    position: relative;
+    padding-left: 0.95rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--tekst-tusklyy);
+}
+
+.chto-sledit li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 0.34rem;
+    height: 0.34rem;
+    border-radius: 50%;
+    background: var(--blue-600);
+}
+
+.chto-sledit b { color: var(--tekst); }
+
+/* Вывод раздела: то, ради чего читали. Выделен подложкой, а не кеглем —
+   крупный шрифт рядом с заголовком раздела спорил бы с ним за внимание. */
+.vyvod-naznacheniya {
+    margin: 1.1rem 0 1rem !important;
+    padding: 0.85rem 1.05rem;
+    background: var(--fon-vydelen);
+    border-left: 3px solid var(--blue-600);
+    border-radius: 0 8px 8px 0;
+    font-size: 0.92rem !important;
+}
+
+.vyvod-naznacheniya b { color: var(--tekst); }
+
+/* Дословная выдержка из задания. Тише всего в разделе: она нужна приёмке,
+   а не читателю витрины, и притворяться нашим текстом ей не следует. */
+.iz-tz {
+    margin: 0 !important;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--granica);
+    font-size: 0.82rem !important;
+}
+
+.iz-tz-metka {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--tekst-tusklyy);
+    opacity: 0.8;
+}
+
+.naznachenie .shema-kontura { flex: 1.3 1 26rem; min-width: 0; margin: 0; }
+
+/* Схема контура на витрине. Своя белая карточка — страница бывает в тёмной
+   теме, а рисунок светлый: без подложки он выглядел бы дырой. Скругление
+   и рамка делают его картинкой, а не куском фона. */
+.shema-kontura {
+    margin: 0.5rem 0 1.75rem;
+    padding: 0.75rem;
+    background: #ffffff;
+    border: 1px solid var(--granica);
+    border-radius: 0.75rem;
+}
+
+.shema-kontura img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 0.4rem;
+}
+
+.shema-kontura figcaption {
+    margin-top: 0.7rem;
+    padding: 0 0.25rem;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    /* Цвет задан своим, а не переменной темы: карточка всегда белая,
+       и подпись на ней обязана быть тёмной в любой теме. */
+    color: #475569;
+}
+
+.shema-kontura figcaption b { color: #1f2430; }
+
+/* Что это даёт — три плитки в теле страницы. В заглавном блоке этот перечень
+   стоял до 11.09.2026 и был оттуда вынесен: на витрине столько не читают.
+   Здесь он читается по заголовкам, а строки под ними нужны тому,
+   кто остановился. */
+.vygody {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 1.25rem;
+    margin-top: 0.5rem;
+}
+
+.vygoda h3 {
+    margin: 0 0 0.4rem;
+    font-size: 1rem;
+    color: var(--tekst);
+}
+
+.vygoda p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--tekst-tusklyy);
+}
+
+/* --- Возражение «диспетчер уже есть» ------------------------------------
+ *
+ * Раздел-разговор, а не раздел-витрина: три плитки те же, что в «Что это
+ * даёт», но вокруг них строки, которые надо прочесть. Поэтому у вводной
+ * и у замера кегль обычного текста, а не подписи: приглушённый мелкий шрифт
+ * здесь означал бы «это не важно», а важно как раз это.
+ *
+ * Последняя строка — про то, когда изделие не нужно, — отбита чертой и
+ * приглушена намеренно: она не продаёт и выглядеть должна иначе.
+ */
+.dispetcher-vvod,
+.dispetcher-zamer {
+    max-width: 52rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.dispetcher-delyozh { margin: 1.35rem 0; }
+
+.dispetcher-zamer { margin-top: 1.35rem; }
+
+.dispetcher-granica {
+    max-width: 52rem;
+    margin-top: 1.1rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--granica);
+    font-size: 0.9rem;
+    line-height: 1.55;
+}
+
+@media (max-width: 40rem) {
+    .geroy { min-height: 16rem; }
+    .geroy-soderzhimoe { padding: 2.25rem 1.5rem 1.75rem; }
+    .geroy h1 { font-size: 1.45rem; }
+}
+
+/* --- Заголовок страницы ------------------------------------------------ */
+
+.zagolovok { padding: 2.5rem 0 0.5rem; }
+
+.obozn {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tekst-tusklyy);
+    margin: 0 0 0.6rem;
+}
+
+h1 {
+    font-size: 1.85rem;
+    line-height: 1.25;
+    margin: 0 0 0.9rem;
+    font-weight: 700;
+}
+
+.cel { font-size: 1.02rem; color: var(--tekst-tusklyy); max-width: 48rem; margin: 0; }
+
+/* --- Плитки показателей ------------------------------------------------ */
+
+.plitki {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+    margin: 2rem 0 0;
+}
+
+.plitka {
+    background: var(--fon-kartochki);
+    border: 1px solid var(--granica);
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+}
+
+.plitka dt {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--tekst-tusklyy);
+    margin: 0 0 0.3rem;
+}
+
+.plitka dd {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.plitka .poyasnenie {
+    display: block;
+    font-size: 0.73rem;
+    font-weight: 400;
+    color: var(--tekst-tusklyy);
+    margin-top: 0.2rem;
+    line-height: 1.35;
+}
+
+/* --- Разделы ----------------------------------------------------------- */
+
+section { padding: 2.25rem 0 0; }
+
+h2 { font-size: 1.2rem; margin: 0 0 0.6rem; font-weight: 700; }
+
+.podpis { color: var(--tekst-tusklyy); font-size: 0.9rem; max-width: 48rem; margin: 0; }
+
+/* --- Девять требований ------------------------------------------------- */
+
+.trebovaniya {
+    display: grid;
+    gap: 0.9rem;
+    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+    margin-top: 1.4rem;
+}
+
+article.trebovanie {
+    background: var(--fon-kartochki);
+    border: 1px solid var(--granica);
+    border-radius: 12px;
+    padding: 1.05rem 1.15rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.nomer {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--akcent);
+    margin-bottom: 0.45rem;
+}
+
+.trebovanie h3 { font-size: 0.95rem; font-weight: 650; margin: 0 0 0.65rem; line-height: 1.4; }
+
+.iz-tz {
+    font-size: 0.84rem;
+    color: var(--tekst-tusklyy);
+    border-left: 2px solid var(--granica);
+    padding-left: 0.7rem;
+    margin: 0 0 0.8rem;
+}
+
+.chto-pokazyvaem { font-size: 0.88rem; margin: 0 0 0.8rem; }
+
+.ogovorka {
+    font-size: 0.81rem;
+    color: var(--tekst-tusklyy);
+    background: var(--fon-vydelen);
+    border-radius: 8px;
+    padding: 0.55rem 0.7rem;
+    margin: 0 0 0.85rem;
+}
+
+.ogovorka b { color: var(--tekst); font-weight: 600; }
+
+/*
+ * Состояние требования: что из него открывается на этой сборке.
+ *
+ * Строка есть у всех девяти карточек и никогда не пустует — требование без
+ * состояния читалось бы как закрытое. Различаются два вида: «Уже работает»
+ * и «Ещё не сделано». Второй нарочно НЕ красный: невыполненное по плану —
+ * не авария, а очередь работ, и красить его тревожным цветом значит врать
+ * тоном ровно так же, как красить готовым.
+ */
+.sostoyanie {
+    font-size: 0.83rem;
+    margin: 0 0 0.8rem;
+    padding-left: 0.7rem;
+    border-left: 3px solid var(--granica);
+}
+
+.sostoyanie b { font-weight: 650; }
+.sostoyanie.rabotaet { border-left-color: #7cc79a; }
+.sostoyanie.rabotaet b { color: #2f7d52; }
+.sostoyanie.ozhidaet { color: var(--tekst-tusklyy); }
+.sostoyanie.ozhidaet b { color: var(--tekst); }
+
+/*
+ * Зелёный тон карточки требования. Тот же нежный оттенок, что у плиток
+ * стройпортфеля (#f2fbf5 / #a7dfba), и та же левая полоска в 4 пикселя как
+ * второй признак помимо цвета. Единый оттенок здесь важнее локальной подгонки:
+ * зелёный на витрине и зелёный на стройпортфеле должны читаться как одно
+ * утверждение, а не как два разных.
+ *
+ * Ставится он только вычислением — по заполненному полю `rabotaet`
+ * (web/index.html). Правила «сделать карточку зелёной» нет намеренно.
+ */
+article.trebovanie.zelenaya {
+    background: #f2fbf5;
+    border-color: #a7dfba;
+    border-left-width: 4px;
+}
+
+article.trebovanie.zelenaya .ogovorka { background: #e9f6ee; }
+
+/* Метка в подписи над сеткой: показывает сам оттенок, а не только слово.
+   Легенда, набранная обычным текстом, не объясняет цвет — её ищут глазами
+   по цвету, а не по слову. */
+.tonovaya-metka {
+    background: #f2fbf5;
+    border: 1px solid #a7dfba;
+    border-left: 4px solid #a7dfba;
+    border-radius: 5px;
+    padding: 0.05rem 0.4rem;
+    color: var(--tekst);
+    font-weight: 600;
+}
+
+@media (prefers-color-scheme: dark) {
+    .sostoyanie.rabotaet { border-left-color: #3f7a58; }
+    .sostoyanie.rabotaet b { color: #7cc79a; }
+
+    article.trebovanie.zelenaya { background: #10231a; border-color: #2f5d43; }
+    article.trebovanie.zelenaya .ogovorka { background: #16301f; }
+
+    .tonovaya-metka {
+        background: #10231a;
+        border-color: #2f5d43;
+        border-left-color: #2f5d43;
+    }
+}
+
+.trebovanie footer {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+}
+
+a.perehod {
+    color: inherit;
+    text-decoration: none;
+    border: 1px solid var(--granica);
+    border-radius: 8px;
+    padding: 0.28rem 0.7rem;
+    background: var(--fon);
+    transition: background 0.15s;
+}
+
+a.perehod:hover { background: var(--fon-vydelen); }
+a.perehod[aria-disabled="true"] { opacity: 0.4; pointer-events: none; }
+
+/* --- Таблицы ----------------------------------------------------------- */
+
+.obertka-tablicy { overflow-x: auto; margin-top: 1.2rem; }
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.88rem;
+    background: var(--fon-kartochki);
+    border: 1px solid var(--granica);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+th, td { text-align: left; padding: 0.5rem 0.8rem; border-bottom: 1px solid var(--granica); }
+
+th {
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--tekst-tusklyy);
+    font-weight: 600;
+    background: var(--fon-vydelen);
+}
+
+tbody tr:nth-child(even) { background: color-mix(in srgb, var(--fon-vydelen) 45%, transparent); }
+tbody tr:last-child td { border-bottom: none; }
+
+td.chislo { text-align: right; font-variant-numeric: tabular-nums; }
+
+code, .kod {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.86em;
+    background: var(--fon-vydelen);
+    padding: 0.05rem 0.3rem;
+    border-radius: 4px;
+}
+
+/* --- Кнопка «наверх» ----------------------------------------------------
+ *
+ * Ставится сценарием на все страницы (obshchee.js). Полупрозрачная: под ней
+ * идёт содержимое страницы, и плотный круг закрывал бы строку таблицы
+ * целиком. Прозрачность уходит при наведении — тогда кнопка нужна, и прятать
+ * её незачем.
+ *
+ * Прячется до прокрутки на высоту экрана: предложение сделать то, что уже
+ * сделано, приучает не смотреть на значок вовсе.
+ */
+.naverh {
+    position: fixed;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    z-index: 40;
+    width: 2.9rem;
+    height: 2.9rem;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--granica);
+    border-radius: 50%;
+    background: var(--fon-kartochki);
+    color: var(--blue-600);
+    cursor: pointer;
+    box-shadow: 0 0.3rem 0.9rem rgba(9, 20, 45, 0.18);
+    opacity: 0;
+    /* Невидимая кнопка не должна ловить нажатия: без этого она перехватывала
+       бы щелчки по тому, что под ней. */
+    pointer-events: none;
+    transform: translateY(0.5rem);
+    transition: opacity 0.16s, transform 0.16s, background 0.12s;
+}
+
+.naverh.vidna {
+    opacity: 0.62;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.naverh.vidna:hover,
+.naverh.vidna:focus-visible { opacity: 1; }
+
+.naverh svg { width: 1.35rem; height: 1.35rem; display: block; }
+
+/* На узком экране кнопка ближе к краю: там полей меньше, и полтора рема
+   отъедают заметную часть ширины. */
+@media (max-width: 40rem) {
+    .naverh { right: 0.9rem; bottom: 0.9rem; width: 2.6rem; height: 2.6rem; }
+}
+
+/* Плавности нет у тех, кто её отключил: у части людей она вызывает дурноту. */
+@media (prefers-reduced-motion: reduce) {
+    .naverh { transition: none; }
+}
+
+/* --- Подвал ------------------------------------------------------------ */
+
+footer.podval {
+    border-top: 1px solid var(--granica);
+    margin-top: 2.5rem;
+    padding: 1.6rem 0 3rem;
+    color: var(--tekst-tusklyy);
+    font-size: 0.84rem;
+}
+
+footer.podval p { margin: 0 0 0.45rem; }
+
+
+/* --- Страница документации ----------------------------------------------
+ *
+ * Документ показывается на экране ТЕМ ЖЕ шрифтом и кеглем, каким уйдёт
+ * на печать: Times New Roman 12 пт, заголовки 14–16 пт полужирным.
+ * Так проверяющий видит документ до диалога печати, а не после, и правка
+ * не превращается в угадывание.
+ *
+ * Оболочка изделия — шапка, перечень, кнопки — остаётся рубленым шрифтом:
+ * это интерфейс, а не документ, и смешивать их нельзя.
+ */
+
+.dok-polosa {
+    display: grid;
+    grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
+    gap: 2.5rem;
+    align-items: start;
+    padding-top: 2rem;
+}
+
+@media (max-width: 60rem) {
+    .dok-polosa { grid-template-columns: 1fr; gap: 1.5rem; }
+}
+
+/* --- Перечень комплекта -------------------------------------------------- */
+
+.dok-perechen {
+    position: sticky;
+    top: 4.5rem;              /* ниже закреплённой шапки */
+    max-height: calc(100vh - 6rem);
+    overflow-y: auto;
+}
+
+.dok-perechen h2 { font-size: 1.05rem; margin-bottom: 0.3rem; }
+
+.spisok-dokumentov { list-style: none; margin: 1.1rem 0 0; padding: 0; }
+
+.dok-punkt {
+    position: relative;             /* к границам карточки крепится накладка ссылки */
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.15rem 0.5rem;
+    padding: 0.6rem 0.7rem;
+    border: 1px solid var(--granica);
+    border-radius: 10px;
+    background: var(--fon-kartochki);
+    margin-bottom: 0.5rem;
+}
+
+/* Отметка выбранного документа рисуется ВНУТРИ карточки: рамка красится
+   в цвет отметки, вторая линия кладётся внутренней тенью.
+   Наружная тень (0 0 0 1px) здесь не годится по двум причинам. Первая:
+   перечень прокручивается (overflow-y: auto у .dok-perechen), а всё, что
+   выходит за пределы прокручиваемой области, она срезает — рамка выбранной
+   карточки обрубалась по бокам. Вторая: наружное кольцо делает выбранную
+   карточку на два пиксела шире соседних, и перечень «дышит» при выборе. */
+.dok-punkt.vybran {
+    border-color: var(--akcent);
+    box-shadow: inset 0 0 0 1px var(--akcent);
+}
+
+.dok-punkt.ne-napisan { opacity: 0.72; }
+
+.dok-ssylka {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Ссылка занимает всю карточку целиком, а не только столбец с названием.
+   Раньше нажималось лишь само название: столбец под значком «не написан»
+   оставался вне ссылки, и браузер рисовал свою отметку фокуса по её узкому
+   размеру — получалась вторая рамка внутри первой и другой ширины. */
+a.dok-ssylka::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;            /* тот же радиус, что у карточки */
+}
+
+/* Отметка фокуса — своя: по форме карточки и внутрь неё (отступ отрицательный),
+   иначе прокручиваемый перечень срежет её по бокам так же, как срезал рамку.
+   Подавляем отметку браузера только там, где умеем поставить свою. */
+@supports selector(:focus-visible) {
+    a.dok-ssylka:focus { outline: none; }
+}
+
+a.dok-ssylka:focus-visible::after {
+    outline: 2px solid var(--akcent);
+    outline-offset: -2px;
+}
+
+a.dok-ssylka:hover .dok-imya-malyy { text-decoration: underline; }
+
+.dok-obozn-malyy {
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: var(--tekst-tusklyy);
+    font-variant-numeric: tabular-nums;
+}
+
+.dok-imya-malyy { font-size: 0.9rem; font-weight: 600; }
+
+.dok-o-chem {
+    grid-column: 1 / -1;
+    font-size: 0.78rem;
+    color: var(--tekst-tusklyy);
+    line-height: 1.4;
+}
+
+.dok-svodka { margin-top: 0.8rem; font-size: 0.82rem; }
+
+/* --- Тело документа ------------------------------------------------------ */
+
+.dok-shapka {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--granica);
+}
+
+.dok-shapka h1 { font-size: 1.5rem; margin: 0.2rem 0 0.4rem; }
+
+/* СКРЫТИЕ АТРИБУТОМ. Браузерное правило `[hidden] { display: none }` живёт
+ * в таблице самого браузера и весом уступает любому нашему правилу с классом.
+ * Поэтому у всего, чему мы задали `display`, атрибут `hidden` из скрипта
+ * молча перестаёт работать: элемент остаётся на экране.
+ *
+ * Правка 12.09.2026 по замечанию владельца: приглушённая карточка «Документ
+ * закрыт» продолжала висеть внутри открытого документа, хотя скрипт её прятал.
+ * Ошибка тихая — в разметке всё верно, на экране нет. */
+.dok-shapka[hidden],
+.dok-priglashenie[hidden] { display: none; }
+
+/* Подсказка «как завести новый регламент» в перечне слева. Свёрнута:
+   заводят правило редко, а перечень читают каждый раз. Но и не спрятана
+   совсем — не найдя кнопки «Добавить», человек решает, что завести нельзя. */
+.kak-zavesti {
+    margin: 0.9rem 0 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--granica);
+}
+
+.kak-zavesti > summary {
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--blue-600);
+    list-style: none;
+}
+
+.kak-zavesti > summary::-webkit-details-marker { display: none; }
+
+.kak-zavesti > summary::before {
+    content: "▸";
+    display: inline-block;
+    margin-right: 0.4rem;
+    transition: transform 0.12s;
+}
+
+.kak-zavesti[open] > summary::before { transform: rotate(90deg); }
+
+.kak-zavesti ol {
+    margin: 0.7rem 0 0.6rem;
+    padding-left: 1.1rem;
+    font-size: 0.84rem;
+    line-height: 1.5;
+    color: var(--tekst-tusklyy);
+}
+
+.kak-zavesti li { margin-bottom: 0.4rem; }
+.kak-zavesti b { color: var(--tekst); }
+.kak-zavesti .podpis { margin: 0; font-size: 0.8rem; }
+
+/* --- Приглашение на странице документации -------------------------------
+ *
+ * Карточка вместо строки мелким шрифтом. Пустая правая половина страницы
+ * с серой подписью читалась как неполадка; карточка отвечает, что делать
+ * и что это за документы.
+ *
+ * «Окно в окне»: карточка не модальная в строгом смысле — она ничего
+ * не перекрывает и не требует закрытия. Модальное окно здесь было бы
+ * ошибкой: оно отнимает управление, а человек пришёл читать, а не отвечать
+ * на вопрос. Вид окна взят, поведение — нет.
+ */
+.dok-priglashenie {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 22rem;
+    padding: 1.5rem 0;
+}
+
+.dok-priglashenie-karta {
+    max-width: 32rem;
+    padding: 2rem 2.25rem 1.75rem;
+    background: var(--fon-kartochki);
+    border: 1px solid var(--granica);
+    border-radius: 0.9rem;
+    box-shadow: 0 0.6rem 1.8rem rgba(9, 20, 45, 0.08);
+    text-align: center;
+}
+
+.dok-priglashenie-znak {
+    width: 2.6rem;
+    height: 2.6rem;
+    color: var(--blue-600);
+    opacity: 0.85;
+}
+
+.dok-priglashenie-karta h2 {
+    margin: 0.6rem 0 0.9rem;
+    font-size: 1.25rem;
+    color: var(--tekst);
+}
+
+.dok-priglashenie-karta p {
+    margin: 0 0 0.7rem;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--tekst-tusklyy);
+    text-align: left;
+}
+
+.dok-priglashenie-karta b { color: var(--tekst); font-weight: 600; }
+
+/* --- Приглушённое состояние: после закрытия документа -------------------
+ *
+ * Та же карточка, но сказать ей нужно другое. Полное приглашение объясняет,
+ * что это за страница, — и нужно пришедшему впервые. После закрытия объяснять
+ * нечего: остаётся подтвердить, что закрытие состоялось, и напомнить, где
+ * выбирают следующий.
+ *
+ * Совсем убирать карточку нельзя: пустое поле ищут как неполадку. У действия
+ * человека обязан быть видимый ответ — иначе зритель решит, что сломалось
+ * изделие, а не что он сам закрыл документ.
+ */
+.dok-priglashenie-korotko { display: none; }
+
+.dok-priglashenie.priglusheno { min-height: 0; padding: 2.5rem 0 0; }
+
+.dok-priglashenie.priglusheno .dok-priglashenie-karta {
+    padding: 1rem 1.4rem;
+    background: transparent;
+    border-style: dashed;
+    box-shadow: none;
+}
+
+.dok-priglashenie.priglusheno .dok-priglashenie-znak,
+.dok-priglashenie.priglusheno h2,
+.dok-priglashenie.priglusheno p:not(.dok-priglashenie-korotko) {
+    display: none;
+}
+
+.dok-priglashenie.priglusheno .dok-priglashenie-korotko {
+    display: block;
+    margin: 0;
+    font-size: 0.86rem;
+    text-align: center;
+    color: var(--tekst-tusklyy);
+}
+
+@media (max-width: 40rem) {
+    .dok-priglashenie { min-height: 0; }
+    .dok-priglashenie-karta { padding: 1.5rem 1.25rem 1.25rem; }
+}
+
+.knopka {
+    font: inherit;
+    font-size: 0.85rem;
+    color: #ffffff;
+    background: var(--blue-600);
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.knopka:hover:not(:disabled) { background: var(--blue-700); }
+
+/* Недоступная кнопка бледная и не откликается, но ОСТАЁТСЯ НА МЕСТЕ.
+   Исчезающая кнопка двигает страницу и заставляет гадать, была ли она
+   вообще; приглушённая говорит «печать здесь есть, но сейчас нечего». */
+.knopka:disabled {
+    opacity: 0.4;
+    cursor: default;
+    background: var(--blue-600);
+}
+
+.dok-oglavlenie {
+    margin: 1.5rem 0 0;
+    padding: 0.9rem 1.1rem;
+    background: var(--fon-vydelen);
+    border-radius: 10px;
+}
+
+.dok-oglavlenie ul { list-style: none; margin: 0.5rem 0 0; padding: 0; }
+.dok-oglavlenie li { margin: 0.2rem 0; font-size: 0.88rem; }
+.dok-oglavlenie li.uroven-2 { padding-left: 1rem; }
+.dok-oglavlenie a { color: inherit; text-decoration: none; }
+.dok-oglavlenie a:hover { text-decoration: underline; }
+
+/* Собственно документ: тот же шрифт и кегль, что на печати. */
+.markdown {
+    font-family: "Times New Roman", "Liberation Serif", Georgia, serif;
+    font-size: 12pt;
+    line-height: 1.5;
+    margin-top: 1.75rem;
+    max-width: 46rem;
+}
+
+/* Страховка на случай, если сообщение изделия всё же окажется внутри
+   документа: подпись остаётся рубленой. Оболочка — шапка, перечень, кнопки,
+   подсказки — не набирается шрифтом документа никогда. Это не украшение:
+   на приёмке шрифт документа есть признак того, что перед вами документ. */
+.markdown .podpis {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 0.9rem;
+}
+
+.markdown h1 { font-size: 16pt; font-weight: bold; }
+.markdown h2 { font-size: 15pt; font-weight: bold; }
+.markdown h3 { font-size: 14pt; font-weight: bold; }
+.markdown h4, .markdown h5, .markdown h6 { font-size: 12pt; font-weight: bold; }
+
+.markdown h1, .markdown h2, .markdown h3,
+.markdown h4, .markdown h5, .markdown h6 {
+    margin: 1.6em 0 0.5em;
+    line-height: 1.3;
+    scroll-margin-top: 4.5rem;   /* якорь не уезжает под закреплённую шапку */
+}
+
+/* Абзац выключается ПО ФОРМАТУ — так набирается программный документ,
+   и так же он выйдет на печать: экран и лист не должны расходиться вёрсткой.
+ *
+ * Вместе с выключкой обязателен перенос. Русский текст по формату без
+ * переносов даёт «реки» — сквозные белые прогалины между словами, — и чем
+ * уже полоса набора, тем они шире. `hyphens` работает от языка страницы,
+ * а он объявлен в разметке (`<html lang="ru">`).
+ *
+ * Выключается только связный текст. Пункты перечня оставлены влево: короткая
+ * строка перечня, растянутая по формату, разъезжается сильнее всего. */
+.markdown p {
+    margin: 0 0 0.85em;
+    text-align: justify;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+}
+
+.markdown ul, .markdown ol { margin: 0 0 0.85em; padding-left: 1.6em; }
+.markdown li { margin: 0.2em 0; }
+.markdown table { font-size: 11pt; margin: 1em 0; }
+.markdown pre { font-size: 10.5pt; padding: 0.8rem 1rem; overflow-x: auto;
+                background: var(--fon-vydelen); border-radius: 8px; }
+.markdown pre code { background: transparent; padding: 0; font-size: inherit; }
+.markdown blockquote {
+    margin: 1em 0;
+    padding: 0.1em 0 0.1em 1.1em;
+    border-left: 3px solid var(--granica);
+    color: var(--tekst-tusklyy);
+}
+.markdown img { max-width: 100%; height: auto; }
+.markdown hr { border: none; border-top: 1px solid var(--granica); margin: 1.8em 0; }
+
+.diagramma { margin: 1.2em 0; }
+.diagramma figcaption {
+    font-size: 0.82rem;
+    font-family: system-ui, sans-serif;
+    color: var(--tekst-tusklyy);
+    margin-bottom: 0.4rem;
+}
+
+/* Подписи связей на диаграммах. Цвет задаётся здесь, а не переменной внутри
+   атрибута SVG: переменные CSS в атрибутах представления поддерживаются
+   не везде. В самом рисунке лежат запасные значения, это правило их
+   переопределяет и подхватывает тему страницы. */
+.markdown svg .mermaid-podlozhka { fill: var(--fon); }
+.markdown svg .mermaid-podpis    { fill: var(--tekst-tusklyy); }
+
+/* --- Рисунки и схемы в документах ---------------------------------------
+ *
+ * Рисунок и схема отделяются от текста воздухом сверху и снизу и отбиваются
+ * рамкой. Причина не в красоте: в программном документе рисунок — отдельная
+ * единица со своим номером и подписью, и слипшись с абзацами он перестаёт
+ * читаться как единица.
+ */
+
+.markdown .risunok,
+.markdown .diagramma {
+    margin: 2.2em 0;
+    padding: 1.1rem 1.2rem 0.9rem;
+    background: var(--fon-kartochki);
+    border: 1px solid var(--granica);
+    border-radius: 12px;
+    text-align: center;
+}
+
+.markdown .risunok img { display: block; margin: 0 auto; border-radius: 6px; }
+
+.markdown .risunok figcaption,
+.markdown .diagramma figcaption {
+    margin-top: 0.8rem;
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: var(--tekst-tusklyy);
+    text-align: center;
+}
+
+/* Диаграмма, которую отрисовать не удалось, показывается исходным текстом —
+   выравнивание по левому краю, иначе текст программы читается плохо. */
+.markdown .diagramma-ne-narisovana { text-align: left; }
+.markdown .diagramma-ne-narisovana figcaption { text-align: left; margin: 0 0 0.7rem; }
+
+/* Схема показывается в снятом размере и только уменьшается, если не влезает
+   в колонку. Растягивать её на всю ширину нельзя: вслед за шириной растёт
+   высота, и схема из шести узлов занимает половину листа при том, что
+   содержания в ней на треть.
+
+   Предел по высоте — на случай очень длинной схемы: она сжимается целиком,
+   а не выдавливает текст документа за пределы экрана. Соотношение сторон
+   при этом сохраняется, потому что задано и width, и height. */
+.markdown .diagramma svg {
+    max-width: 100%;
+    max-height: 70vh;
+    width: auto;
+    height: auto;
+}
+
+/* --- Стройпортфель ------------------------------------------------------- */
+
+.schetchik { color: var(--tekst-tusklyy); font-weight: 400; font-size: 0.9rem; }
+
+.zapis-resheniya {
+    background: var(--fon-kartochki);
+    border: 1px solid var(--granica);
+    border-radius: 12px;
+    padding: 0.9rem 1.1rem;
+    margin: 0.7rem 0;
+}
+
+.zapis-verh { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; }
+.zapis-podrobnost { margin: 0.45rem 0 0.6rem; font-size: 0.9rem; }
+.zapis-niz {
+    margin: 0;
+    display: flex;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+    font-size: 0.82rem;
+    color: var(--tekst-tusklyy);
+}
+
+/* --- карточка договора ----------------------------------------------------
+ *
+ * Тон берётся из той же шкалы, что у плиток (класс `plitka-*`), и по тому же
+ * правилу: вычисляется из худшего вердикта среди объектов договора, а не
+ * назначается. Своих порогов у договора нет и заводиться не должно — иначе
+ * одно и то же положение дел получило бы на странице два разных цвета.
+ */
+.dogovor {
+    border: 1px solid var(--granica);
+    border-radius: 12px;
+    padding: 0.9rem 1.1rem;
+    margin: 0.7rem 0;
+}
+
+.dogovor-verh { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; }
+
+.dogovor-rekvizity,
+.dogovor-obekty {
+    margin: 0.5rem 0 0;
+    display: flex;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+    font-size: 0.84rem;
+    color: var(--tekst-tusklyy);
+}
+
+.dogovor-obekty span:not(.porog-nazvanie) { color: var(--tekst); }
+.dogovor .obertka-tablicy { margin-top: 0.8rem; }
+.dogovor > .podpis:last-child { margin: 0.6rem 0 0; font-size: 0.78rem; }
+
+/* Пустая ячейка в столбце чисел читается как ноль, поэтому пробел пишется
+   словами и не выравнивается по правому краю, как число. */
+.net-znacheniya { color: var(--tekst-tusklyy); font-style: italic; }
+
+/* Свёрнутая карточка: объект на стройпортфеле и реестр поручений. Один
+   набор правил на оба — свёрнутый раздел, раскрывающийся по щелчку, читается
+   как одна и та же вещь, и разное его оформление сообщало бы о различии,
+   которого нет. */
+details.obekt, details.reestr {
+    background: var(--fon-kartochki);
+    border: 1px solid var(--granica);
+    border-radius: 12px;
+    padding: 0.8rem 1.1rem;
+    margin: 0.7rem 0;
+}
+
+/* Счётчик в заголовке свёрнутой секции — чтобы не разворачивать её ради
+   одного числа. Приём из донорского проекта. */
+details.obekt summary, details.reestr summary {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    list-style: none;
+}
+
+details.obekt summary::-webkit-details-marker,
+details.reestr summary::-webkit-details-marker { display: none; }
+details.obekt summary::before,
+details.reestr summary::before { content: "▸"; color: var(--tekst-tusklyy); }
+details.obekt[open] summary::before,
+details.reestr[open] summary::before { content: "▾"; }
+
+.obekt-imya { font-weight: 600; }
+details.obekt .obertka-tablicy,
+details.reestr .obertka-tablicy { margin-top: 0.8rem; }
+
+/* --- Раздел-раскладушка ----------------------------------------------------
+ *
+ * Стройпортфель вырос до восьми разделов, и прокрутка до нижних стала длиннее
+ * самих разделов. Раскладушка возвращает странице обозримость: заголовки всех
+ * разделов видны сразу, раскрывается то, что нужно сейчас.
+ *
+ * Взято НАТИВНОЕ `details`, а не своё на сценарии: раскрытие работает
+ * и при отключённом JavaScript, поиск по странице сам раскрывает найденное,
+ * и клавиатура водит по заголовкам без единой строки нашего кода.
+ *
+ * СЧЁТЧИК СТОИТ В ЗАГОЛОВКЕ и виден у свёрнутого раздела. Иначе раскладушка
+ * вредна: чтобы узнать, есть ли что-то в разделе, его пришлось бы раскрывать
+ * — то есть цена свёртки легла бы на того, кто ищет.
+ */
+
+details.razdel {
+    border-bottom: 1px solid var(--granica);
+    padding: 0 0 0.6rem;
+    margin: 0.9rem 0 0;
+}
+
+details.razdel > summary {
+    cursor: pointer;
+    display: flex;
+    /* Выравнивание по СЕРЕДИНЕ, а не по базовой линии: знак раскрытия вдвое
+       крупнее заголовка, и по базовой линии он утащил бы заголовок вниз. */
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    list-style: none;
+    padding: 0.55rem 0;
+    border-radius: 8px;
+}
+
+details.razdel > summary:hover { color: var(--akcent); }
+details.razdel > summary::-webkit-details-marker { display: none; }
+
+details.razdel > summary::before {
+    content: "▸";
+    color: var(--tekst-tusklyy);
+    /* Вдвое крупнее прежнего по замечанию владельца от 11.09.2026: знак
+       в девять десятых em на рабочем экране не читался, а это единственный
+       орган управления раздела — по нему и целятся. */
+    font-size: 1.8rem;
+    line-height: 1;
+    /* Ширина закреплена, чтобы заголовки не прыгали при раскрытии:
+       у «▸» и «▾» разная ширина в системных шрифтах. */
+    width: 1.5rem;
+    flex: none;
+    text-align: center;
+}
+
+details.razdel[open] > summary::before { content: "▾"; }
+details.razdel > summary h2 { margin: 0; display: inline; }
+details.razdel > summary .podpis { flex-basis: 100%; }
+/* Отступ тела выровнен под знак раскрытия: содержимое начинается там же,
+   где заголовок, а не под треугольником. */
+details.razdel > .razdel-telo { padding: 0.3rem 0 0.4rem 2.1rem; }
+
+/* --- Панель здоровья связи в шапке ---------------------------------------
+ *
+ * Она сквозная на всех страницах: пользователь работает с данными, лежащими
+ * в ноутбуке, и обязан видеть их давность там, где смотрит, а не там, где
+ * вспомнит посмотреть. Незаметная подкачка без показанной давности делает
+ * изделие источником уверенно устаревших чисел.
+ */
+
+.panel-zdorovya {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    margin-left: auto;
+}
+
+.ogonyok {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: #94a3b8;
+    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.22);
+}
+
+.ogonyok-zdorov     { background: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25); }
+.ogonyok-ustarelo   { background: #eab308; box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.25); }
+.ogonyok-otkaz      { background: #ef4444; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25); }
+.ogonyok-net_dannyh { background: #94a3b8; box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.22); }
+
+/* Идёт подкачка — огонёк дышит. Признак движения обязателен: без него
+   человек нажимает кнопку второй раз, не поняв, началось ли что-нибудь. */
+.ogonyok-idet {
+    background: #38bdf8;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+    animation: dyhanie 1.2s ease-in-out infinite;
+}
+
+@keyframes dyhanie {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ogonyok-idet { animation: none; }
+}
+
+.zdorovie-podpis { opacity: 0.85; white-space: nowrap; }
+
+.knopka-podkachat {
+    font: inherit;
+    font-size: 0.78rem;
+    color: inherit;
+    background: rgba(127, 127, 127, 0.18);
+    border: none;
+    border-radius: 7px;
+    padding: 0.25rem 0.6rem;
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+}
+
+.knopka-podkachat:hover:not(:disabled) { background: rgba(127, 127, 127, 0.3); }
+.knopka-podkachat:disabled { opacity: 0.45; cursor: default; }
+
+/* «Остановить» отличается от «Обновить» цветом, а не только словом.
+   Две одинаковые кнопки рядом, из которых одна начинает, а другая прерывает, —
+   это приглашение нажать не ту. Появляется она только пока идёт обход. */
+.knopka-ostanovit {
+    background: rgba(217, 138, 146, 0.28);
+    margin-left: 0.4rem;
+}
+
+.knopka-ostanovit:hover:not(:disabled) { background: rgba(217, 138, 146, 0.45); }
+
+@media (max-width: 52rem) {
+    .panel-zdorovya { order: 3; width: 100%; margin-left: 0; }
+}
+
+/* Название изделия в шапке ведёт на витрину: это привычный путь домой,
+   и на всех страницах, кроме самой витрины, он единственный. */
+a.imya-izdeliya { color: inherit; text-decoration: none; }
+a.imya-izdeliya:hover { opacity: 0.85; }
+
+/* Положение изделия относительно системы-источника — на заглавном блоке.
+   Стоит первым не ради красоты: это первое, о чём спрашивают и заказчик,
+   и владелец системы управления проектами. Ответ должен прозвучать раньше
+   вопроса, иначе весь показ идёт под невысказанным подозрением, что изделие
+   пришло вытеснить их продукт. */
+.geroy .polozhenie {
+    margin: 1.1rem 0 0;
+    padding: 0.85rem 1.05rem;
+    max-width: 48rem;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.92);
+    background: rgba(9, 20, 45, 0.42);
+    border-left: 3px solid rgba(255, 255, 255, 0.55);
+    border-radius: 0 10px 10px 0;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+}
+
+/* Внутри врезки две строки — «что появится» и «что не побеспокоит».
+   Собственные отступы абзацев здесь сняты: врезка держит свой отступ сама,
+   а браузерные поля растянули бы её вдвое. */
+.geroy .polozhenie p { margin: 0; }
+.geroy .polozhenie p + p { margin-top: 0.55rem; }
+
+.geroy .polozhenie strong { color: #ffffff; }
+
+/* Граница редакции: тише врезки выше, но не спрятана. Это уточнение объёма,
+   и читаться оно должно как часть обещания, а не как сноска мелким шрифтом. */
+.geroy .granica-redakcii {
+    margin: 0.75rem 0 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.72);
+    max-width: 40rem;
+}
+
+.geroy .granica-redakcii strong,
+.geroy .granica-redakcii b { color: rgba(255, 255, 255, 0.92); font-weight: 600; }
+
+/* Ссылка на чужой продукт — светлая с подчёркиванием: на тёмной полосе синий
+   цвет ссылки нечитаем, а без подчёркивания она перестаёт быть ссылкой.
+   Правило работает и для запасного варианта: когда знак не доехал, обработчик
+   подменяет его словом, и слово остаётся ссылкой. */
+.geroy .granica-redakcii a {
+    color: #ffffff;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+}
+
+/* Знак Plan-R в строке. Подчёркивания у него нет — под картинкой оно читается
+   как случайная черта; вместо него лёгкая рамка, чтобы знак не сливался
+   с подложкой, у которой почти тот же тёмно-синий. */
+.geroy .znak-planr {
+    text-decoration: none;
+    display: inline-block;
+    vertical-align: middle;
+    border-radius: 0.25rem;
+    overflow: hidden;
+    outline: 1px solid rgba(255, 255, 255, 0.22);
+    outline-offset: -1px;
+    margin: 0 0.15rem;
+    transition: outline-color 0.12s;
+}
+
+.geroy .znak-planr:hover { outline-color: rgba(255, 255, 255, 0.55); }
+
+.geroy .znak-planr img {
+    display: block;
+    /* Знак стоит ВНУТРИ абзаца, а не отдельной строкой, поэтому высота
+       умеренная: при 2em он разгонял межстрочный интервал той строки,
+       где оказывался, и абзац шёл лесенкой. */
+    height: 1.45em;
+    width: auto;
+}
+
+@media (max-width: 40rem) {
+    .geroy .polozhenie { font-size: 0.86rem; padding: 0.7rem 0.85rem; }
+}
+
+/* Порядок действий на странице администратора: пронумерованные шаги.
+   Номер вынесен в кружок, потому что порядок здесь существен — это не список
+   возможностей, а последовательность, и перепутанные шаги стоят часового
+   обхода по неподнятому каналу. */
+.poryadok {
+    counter-reset: shag;
+    list-style: none;
+    margin: 1rem 0 1.25rem;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
+    max-width: 54rem;
+}
+
+.poryadok li {
+    counter-increment: shag;
+    position: relative;
+    padding: 0 0 0 2.4rem;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: var(--tekst-tusklyy);
+}
+
+.poryadok li::before {
+    content: counter(shag);
+    position: absolute;
+    left: 0;
+    top: 0.05em;
+    width: 1.65rem;
+    height: 1.65rem;
+    border-radius: 50%;
+    background: var(--blue-600);
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.poryadok strong { color: var(--tekst); }
+
+/* --- Страница регламентов: паспорт ЦДР, шкала, правка порогов -------------
+ *
+ * Устройство взято из студии донорского проекта: перечень слева, правило
+ * справа, быстрая правка порогов над текстом. Отличий два, и оба
+ * принципиальны. У донора порог двигают ползунком — здесь он вводится числом:
+ * порог есть содержание нормы, а ползунок задаёт значение с точностью до
+ * своего шага. И у донора этот орган декоративен — правит соседнее поле,
+ * а на сервер уходит текстовая область, которой он не касался; здесь ввод
+ * переписывает сам текст правила, обе записи границы сразу.
+ */
+
+.cdr-polya {
+    margin: 1rem 0 0;
+    display: grid;
+    gap: 0.9rem;
+}
+
+.cdr-pole {
+    border-left: 3px solid var(--akcent);
+    padding-left: 0.9rem;
+}
+
+.cdr-pole dt {
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--tekst-tusklyy);
+}
+
+.cdr-pole dd { margin: 0.2rem 0 0; }
+
+.cdr-spisok { margin: 0.2rem 0 0; padding-left: 1.1rem; }
+.cdr-spisok li { margin-bottom: 0.2rem; }
+
+/* --- пороги --- */
+
+.porogi { display: grid; gap: 0.7rem; margin: 1rem 0 1.2rem; }
+
+.porog {
+    display: grid;
+    grid-template-columns: minmax(11rem, 22rem) 8rem minmax(0, 1fr);
+    gap: 0.8rem;
+    align-items: center;
+}
+
+@media (max-width: 42rem) {
+    .porog { grid-template-columns: 1fr; gap: 0.3rem; }
+}
+
+.porog-podpis { font-size: 0.85rem; color: var(--tekst-tusklyy); }
+
+.porog-bylo { font-size: 0.8rem; color: var(--tekst-tusklyy); }
+
+.porog-chislo,
+#parol {
+    font: inherit;
+    font-size: 0.9rem;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--granica);
+    border-radius: 8px;
+    background: var(--fon-kartochki);
+    color: var(--tekst);
+}
+
+.porog-chislo { text-align: right; font-variant-numeric: tabular-nums; }
+#parol { width: 14rem; }
+
+/* --- вкладки текста и структуры --- */
+
+.vkladki {
+    display: flex;
+    gap: 0.3rem;
+    border-bottom: 1px solid var(--granica);
+    margin-bottom: 0.8rem;
+}
+
+.vkladka {
+    font: inherit;
+    font-size: 0.85rem;
+    padding: 0.45rem 0.9rem;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    background: none;
+    color: var(--tekst-tusklyy);
+    cursor: pointer;
+    margin-bottom: -1px;
+}
+
+.vkladka:hover { color: var(--tekst); }
+
+.vkladka-vybrana {
+    color: var(--akcent);
+    font-weight: 600;
+    border-color: var(--granica);
+    background: var(--fon-kartochki);
+}
+
+#tekst-pravila,
+.struktura {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    padding: 0.9rem;
+    border: 1px solid var(--granica);
+    border-radius: 10px;
+    background: var(--fon-kartochki);
+    color: var(--tekst);
+    resize: vertical;
+    tab-size: 2;
+}
+
+.struktura { margin: 0; white-space: pre-wrap; overflow-x: auto; }
+
+/* --- подсветка YAML --------------------------------------------------------
+
+   Цвет здесь несёт СМЫСЛ, а не украшение: ключ, значение, число и примечание
+   различаются с одного взгляда, и опечатка вроде «diapazony» с пропущенным
+   двоеточием видна тем, что строка перестала краситься как ключ.
+
+   Палитра взята из уже существующих переменных темы, где могла; три цвета
+   заведены своими, потому что в палитре изделия нет ни зелёного текста,
+   ни лилового. Оба набора объявлены и для светлой, и для тёмной темы:
+   подсветка, читаемая в одной и слепая в другой, хуже её отсутствия. */
+:root {
+    --yaml-klyuch: var(--blue-700);
+    --yaml-stroka: #0f766e;
+    --yaml-chislo: #9333ea;
+    --yaml-osobo:  #b45309;
+    --yaml-primechanie: var(--slate-400);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --yaml-klyuch: #79c0ff;
+        --yaml-stroka: #7ee787;
+        --yaml-chislo: #d2a8ff;
+        --yaml-osobo:  #ffa657;
+        --yaml-primechanie: #6e7681;
+    }
+}
+
+.yaml-klyuch { color: var(--yaml-klyuch); font-weight: 600; }
+.yaml-stroka { color: var(--yaml-stroka); }
+.yaml-chislo { color: var(--yaml-chislo); font-variant-numeric: tabular-nums; }
+.yaml-osobo  { color: var(--yaml-osobo); }
+.yaml-primechanie { color: var(--yaml-primechanie); font-style: italic; }
+.yaml-defis  { color: var(--tekst-tusklyy); }
+
+/* Строка, в которой проверка нашла беду, помечается полосой слева: без неё
+   в двадцати строках приходится искать глазами ту, о которой сказано. */
+.yaml-stroka-beda {
+    display: block;
+    border-left: 3px solid #d98a92;
+    margin-left: -0.9rem;
+    padding-left: calc(0.9rem - 3px);
+    background: rgba(217, 138, 146, 0.12);
+}
+
+/* --- строка проверки текста правила --- */
+
+.proverka {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.8rem;
+    align-items: baseline;
+    margin: 0.6rem 0 0;
+    font-size: 0.85rem;
+}
+
+.proverka-itog { font-weight: 600; }
+.proverka-horosho .proverka-itog { color: #2f7d52; }
+.proverka-beda   .proverka-itog { color: #a33a45; }
+
+.proverka-spisok {
+    margin: 0.3rem 0 0;
+    padding-left: 1.1rem;
+    width: 100%;
+    color: var(--tekst-tusklyy);
+}
+
+.proverka-spisok li { margin: 0.15rem 0; }
+.proverka-spisok .proverka-mesto { color: var(--tekst-tusklyy); }
+
+@media (prefers-color-scheme: dark) {
+    .proverka-horosho .proverka-itog { color: #7cc79a; }
+    .proverka-beda   .proverka-itog { color: #e08b95; }
+}
+
+.pravka-niz {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: center;
+    margin-top: 0.8rem;
+}
+
+.knopka-tihaya {
+    background: none;
+    color: var(--akcent);
+    border: 1px solid var(--granica);
+}
+
+.knopka-tihaya:hover { background: rgba(127, 127, 127, 0.1); }
+
+.knopka:disabled,
+.knopka-tihaya:disabled { opacity: 0.45; cursor: default; }
+
+.soobshchenie {
+    margin-top: 0.9rem;
+    padding: 0.7rem 0.9rem;
+    border-radius: 10px;
+    border: 1px solid var(--granica);
+    background: var(--fon-kartochki);
+    font-size: 0.9rem;
+}
+
+.soobshchenie-udacha  { border-color: #6fbf85; }
+.soobshchenie-otkaz   { border-color: #d98a92; }
+.soobshchenie-spokoyno { border-color: var(--granica); }
+
+/* --- полоса действия -------------------------------------------------------
+ *
+ * Три части в строгом порядке: объяснение, кнопки, ответ. Порядок и есть
+ * содержание правила.
+ *
+ * Было иначе: кнопка стояла ВНУТРИ абзаца мелкого текста, и текст её обтекал.
+ * Кнопка читалась как слово в предложении, а не как действие, и найти её
+ * глазами на странице было нельзя. Отсюда же старшинство: на одной странице
+ * не может быть трёх одинаково ярких кнопок — тогда ни одна не главная.
+ * Дорогое и редкое действие («полный перечёт») получает приглушённую кнопку
+ * не из скромности, а чтобы его не нажимали походя.
+ */
+.deystvie { margin: 0.9rem 0 1.4rem; }
+
+.deystvie > .podpis { margin: 0 0 0.7rem; max-width: 46rem; }
+
+.deystvie-knopki {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+/* Ответ — ПОД кнопками, а не сбоку: сбоку он раздвигает строку и кнопки
+   прыгают при каждом ответе. */
+.deystvie-otvet {
+    margin: 0.55rem 0 0;
+    max-width: 46rem;
+    min-height: 1.2em;
+}
+
+/* Ответ рядом с кнопкой. Тот же цвет исхода, что и у верхней строки, но без
+   рамки и подложки: это подпись у действия, а не сообщение страницы.
+   Заведён потому, что таблица настроек уходит за экран, и ответ наверху
+   человек попросту не видит — кнопка выглядит нерабочей. */
+.otvet-ryadom {
+    margin: 0.35rem 0 0;
+    max-width: 22rem;
+    line-height: 1.35;
+}
+
+.otvet-ryadom.soobshchenie-udacha { color: #2f7d52; border: 0; }
+.otvet-ryadom.soobshchenie-otkaz  { color: #a33a45; border: 0; }
+
+@media (prefers-color-scheme: dark) {
+    .otvet-ryadom.soobshchenie-udacha { color: #7cc79a; }
+    .otvet-ryadom.soobshchenie-otkaz  { color: #e08b95; }
+}
+
+/* Ввод границ по диапазонам: от и до у каждого исхода. Полей два на границу —
+   «до» у одного диапазона и «от» у следующего, — и оба правят одно место
+   в файле. Так видно, куда попадает значение ровно на границе. */
+
+.porogi-tablica { width: 100%; border-collapse: collapse; }
+
+.porogi-tablica th {
+    text-align: left;
+    font-size: 0.75rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--tekst-tusklyy);
+    font-weight: 500;
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--granica);
+}
+
+.porogi-tablica td {
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid var(--granica);
+    vertical-align: middle;
+}
+
+.porogi-tablica tr:last-child td { border-bottom: none; }
+
+.porog-nazvanie {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--tekst-tusklyy);
+    margin-top: 0.2rem;
+}
+
+.porog-beskonechnost {
+    font-size: 0.82rem;
+    color: var(--tekst-tusklyy);
+    font-style: italic;
+}
+
+.porog-poyasnenie {
+    font-size: 0.85rem;
+    color: var(--tekst-tusklyy);
+    font-variant-numeric: tabular-nums;
+}
+
+.porogi-tablica .porog-chislo { width: 7rem; }
+
+/* --- Полоса действий страницы ---------------------------------------------
+ *
+ * Закреплена ПОД шапкой, а не внутри неё. Внутри шапки панель переносилась
+ * на вторую строку, и шапка на стройпортфеле становилась вдвое выше, чем
+ * на остальных страницах: переход между разделами давал прыжок высоты,
+ * причём у закреплённой шапки — прямо под курсором.
+ *
+ * Отступ сверху равен высоте шапки, и она ЗАМЕРЯЕТСЯ сценарием, а не пишется
+ * числом: высота зависит от ширины окна, размера шрифта у читателя и длины
+ * перечня разделов. Запасное значение в правиле — на случай, если сценарий
+ * не отработал; лучше полоса чуть не на месте, чем полоса под шапкой.
+ */
+
+/* Шапка и полоса действий закреплены ОДНИМ блоком.
+ *
+ * Сперва полоса закреплялась отдельно, а её отступ сверху вычислялся замером
+ * высоты шапки. Замер промахивался, и синяя шапка наезжала на полосу. Одна
+ * закреплённая обёртка снимает вопрос целиком: выравнивать нечего, потому
+ * что смещения нет — блок едет как одно целое. Заодно ушли и замер, и правило
+ * с запасным числом, и обработчик изменения размера окна. */
+.verhnyaya-oblast {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+/* Внутри обёртки шапка обычная: закрепление держит обёртка. */
+.verhnyaya-oblast header.shapka {
+    position: static;
+    z-index: auto;
+}
+
+.polosa-deystviy {
+    background: var(--shapka-prokruchena);
+    border-bottom: 1px solid var(--granica);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    backdrop-filter: saturate(180%) blur(12px);
+}
+
+/* Запас, если браузер размытия не умеет: подложка делается плотнее, иначе
+   таблица просвечивает сквозь полосу и мешает читать состояние. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .polosa-deystviy { background: var(--fon); }
+}
+
+.polosa-deystviy .polosa {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    /* Полоса выше кнопки: при отступе в 0,4rem кнопка упиралась в границы
+       и читалась как часть полосы, а не как то, что нажимают. */
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+    min-height: 2.9rem;
+}
+
+/* Когда действие в полосе одно, оно прижимается вправо: слева пусто,
+   и растянутая на всю ширину кнопка выглядела бы ошибкой раскладки. */
+.polosa-deystviy .polosa > :only-child { margin-left: auto; }
+
+.polosa-deystviy .podpis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Поле значения настройки: шире порогового, потому что сюда вводят
+   не только числа, но и идентификаторы чатов и время. */
+.nastroyka-pole { width: 12rem; text-align: left; font-variant-numeric: normal; }
+
+/* Образец значения в пустом поле — серым и без нажима: это подсказка,
+   а не значение. Браузеры по умолчанию красят её слишком бледно, и на показе
+   с проектора её не видно вовсе. */
+.nastroyka-pole::placeholder,
+.porog-chislo::placeholder,
+#parol::placeholder {
+    color: var(--tekst-tusklyy);
+    opacity: 0.75;
+}
+
+/* Поле настройки шире порогового: сюда вводят идентификаторы чатов
+   и перечни людей, а не короткие числа. */
+.nastroyka-pole { min-width: 18rem; }
+
+/* --- Тон плитки: градус накала одним взглядом ----------------------------
+ *
+ * Четыре тона плюс «нет данных». Тон ВЫЧИСЛЯЕТСЯ из доли либо берётся
+ * у уже вынесенного вердикта — он никогда не назначается рукой и никогда
+ * не заводит новый порог: порог есть содержание нормы и живёт в файле правила.
+ *
+ * «Нет данных» СЕРОЕ и в четвёрку не входит. Это не уровень, а состояние
+ * прогона; попади оно в цветную шкалу — читалось бы как исход, и несущий
+ * инвариант изделия сломался бы в самом заметном месте страницы.
+ *
+ * Тона нежные намеренно: подложка чуть тронута цветом, рамка чуть плотнее,
+ * число остаётся цвета текста. Насыщенная заливка на пяти плитках сразу
+ * превращает страницу в светофор, на который перестают смотреть.
+ * Значки исходов рядом остаются прежними — тона с ними согласованы
+ * по оттенку, а не спорят.
+ */
+
+.plitka-zelenaya   { background: #f2fbf5; border-color: #a7dfba; }
+.plitka-zheltaya   { background: #fefbea; border-color: #e6d48a; }
+.plitka-rozovaya   { background: #fdf3f5; border-color: #e8b4be; }
+.plitka-krasnaya   { background: #fdf1f1; border-color: #e39b9b; }
+.plitka-net-dannyh { background: var(--fon-vydelen); border-color: var(--granica); }
+
+/* Полоска слева — второй признак тона помимо цвета: на проекторе и при
+   нарушении цветовосприятия заливка различается плохо, а толщина — хорошо. */
+.plitka-zelenaya,
+.plitka-zheltaya,
+.plitka-rozovaya,
+.plitka-krasnaya,
+.plitka-net-dannyh { border-left-width: 4px; }
+
+@media (prefers-color-scheme: dark) {
+    .plitka-zelenaya   { background: #10231a; border-color: #2f5d43; }
+    .plitka-zheltaya   { background: #262010; border-color: #5f5223; }
+    .plitka-rozovaya   { background: #2a161a; border-color: #67323d; }
+    .plitka-krasnaya   { background: #2c1515; border-color: #7a3232; }
+    .plitka-net-dannyh { background: var(--fon-vydelen); border-color: var(--granica); }
+}
+
+/* Доля: знаменатель мельче числителя. «5/5» читается как одно число,
+   а не как два — знаменатель здесь опора, а не самостоятельная величина. */
+.plitka .znamenatel {
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: var(--tekst-tusklyy);
+}
+
+/* --- Решётка «регламент × исход» -----------------------------------------
+ *
+ * Семь строк на четыре столбца. Четвёртый — «нет данных», и он тут главный:
+ * на живых данных таких прогонов больше половины. В таблице из трёх столбцов
+ * они исчезли бы молча — строки просто не досчитывались бы до числа объектов.
+ *
+ * Ячейка красится тоном ЛЕГЧЕ, чем значок в шапке столбца: цвет тут помогает
+ * найти строку, а не кричит. Ноль остаётся приглушённым — решётка из двадцати
+ * восьми ячеек, набранных жирными нулями, нечитаема.
+ */
+
+.setka { width: 100%; border-collapse: collapse; }
+.setka th { font-weight: 500; font-size: 0.78rem; }
+.setka .setka-stolbec { text-align: center; }
+.setka th.setka-norma      { background: #f2fbf5; }
+.setka th.setka-vnimanie   { background: #fefbea; }
+.setka th.setka-kritichno  { background: #fdf1f1; }
+.setka th.setka-net-dannyh { background: var(--fon-vydelen); }
+.setka td, .setka th { padding: 0.45rem 0.7rem; }
+
+.setka-yacheyka { text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; }
+/* Ноль приглушается начертанием, а не фоном: фон несёт принадлежность
+   к исходу и обязан остаться. */
+.setka-nol { color: var(--tekst-tusklyy); font-weight: 400; opacity: 0.4; }
+
+.setka-norma      { background: #f2fbf5; }
+.setka-vnimanie   { background: #fefbea; }
+.setka-kritichno  { background: #fdf1f1; }
+.setka-net-dannyh { background: var(--fon-vydelen); }
+
+/* Регламент, у которого ВСЕ прогоны без данных, не работает вовсе —
+   и это надо видеть, а не вычислять из нулей. */
+.setka-molchit td:first-child { opacity: 0.6; font-style: italic; }
+
+@media (prefers-color-scheme: dark) {
+    .setka-norma      { background: #10231a; }
+    .setka-vnimanie   { background: #262010; }
+    .setka-kritichno  { background: #2c1515; }
+    .setka-net-dannyh { background: var(--fon-vydelen); }
+}
+
+/* Филиал у имени объекта: приглушённо, но рядом. Половина объектов
+   пространства не имеет данных, и без филиала это выглядит поломкой
+   изделия, а не свойством данных заказчика. */
+.obekt-filial {
+    font-size: 0.78rem;
+    color: var(--tekst-tusklyy);
+    font-weight: 400;
+}
+
+/* Текст поручения — второй строкой во всю ширину таблицы реестра. В столбец
+   он не помещается, а без него таблица показывает, что поручение есть,
+   и не показывает, какое именно. Верхняя граница у такой строки убрана:
+   она продолжение предыдущей, а не отдельная запись. */
+tr.poruchenie-tekst td {
+    border-top: none;
+    padding-top: 0;
+    padding-bottom: 0.7rem;
+    color: var(--tekst-tusklyy);
+}
