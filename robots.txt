@@ -5,4 +5,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://arhi-nsu.vercel.app/sitemap.xml
+Sitemap: https://archi-nsu.vercel.app/sitemap.xml

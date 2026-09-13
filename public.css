@@ -224,3 +224,37 @@
   border-radius: 4px;
   padding: 0.05rem 0.3rem;
 }
+
+/* --- Что уже работает ---------------------------------------------------- */
+
+/* Плитки вместо прежних карточек требований. Заголовок здесь мельче, чем
+   в составе поставки (`.sostav-punkt b` — число, его видно издалека),
+   потому что тут заголовок читают, а не считывают. */
+
+.rabotaet {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+  margin: 1.8rem 0 1.4rem;
+}
+
+.rabota-punkt {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-left: 3px solid #1d4ed8;
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+}
+
+.rabota-punkt b {
+  display: block;
+  font-size: 1.02rem;
+  color: #0f172a;
+  margin-bottom: 0.4rem;
+}
+
+.rabota-punkt span {
+  color: #475569;
+  font-size: 0.94rem;
+  line-height: 1.55;
+}

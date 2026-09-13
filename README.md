@@ -69,13 +69,13 @@ gh repo create ARCHI-NSU-Public --private --source=. --push
 проекте нет и заводить его не надо.** Появится — вернутся и переменные
 окружения, и разговор про 152-ФЗ, и вопрос, кто чистит накопленное.
 
-### 3. Если адрес вышел не `arhi-nsu.vercel.app`
+### 3. Если адрес вышел не `archi-nsu.vercel.app`
 
 Адрес прописан в трёх местах: `canonical` и `og:` в `index.html`,
 `sitemap.xml` и `robots.txt`. Поменять одной командой:
 
 ```bash
-STARYY=arhi-nsu.vercel.app
+STARYY=archi-nsu.vercel.app
 NOVYY=<как назвали проект>.vercel.app
 grep -rl "$STARYY" index.html sitemap.xml robots.txt \
   | xargs sed -i '' "s|$STARYY|$NOVYY|g"
@@ -92,7 +92,7 @@ grep -rl "$STARYY" index.html sitemap.xml robots.txt \
 Половина проверки ловит половину бед.
 
 ```bash
-S=https://arhi-nsu.vercel.app
+S=https://archi-nsu.vercel.app
 
 # 1. Живые адреса обязаны отдавать 200
 for p in / /style.css /public.css /public.js \
