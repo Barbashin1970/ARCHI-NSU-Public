@@ -909,8 +909,30 @@
              onerror="this.remove()">
         <div class="svyaz-podpis">
           <b class="svyaz-imya">Олег Барбашин</b>
-          <p class="svyaz-adres">
-            <a href="mailto:banksnab@gmail.com?subject=%D0%9F%D0%BB%D0%B0%D1%82%D1%84%D0%BE%D1%80%D0%BC%D0%B0%20%D0%90%D0%A0%D0%A5%D0%98%20%E2%80%94%20%D0%B7%D0%B0%D1%8F%D0%B2%D0%BA%D0%B0&amp;body=%D0%9E%D1%80%D0%B3%D0%B0%D0%BD%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F%3A%0A%D0%A7%D1%82%D0%BE%20%D0%BD%D1%83%D0%B6%D0%BD%D0%BE%20(%D0%BF%D0%BE%D0%BA%D0%B0%D0%B7%20%2F%20%D0%B4%D0%B8%D1%81%D1%82%D1%80%D0%B8%D0%B1%D1%83%D1%82%D0%B8%D0%B2%20%2F%20%D0%BF%D0%B8%D0%BB%D0%BE%D1%82)%3A%0A%D0%A1%D0%BA%D0%BE%D0%BB%D1%8C%D0%BA%D0%BE%20%D0%BE%D0%B1%D1%8A%D0%B5%D0%BA%D1%82%D0%BE%D0%B2%3A%0A">banksnab@gmail.com</a>
+          <p class="svyaz-dolzhnost">Ведущий специалист · Центр ИИ НГУ</p>
+          <!--
+            ДВА КАНАЛА, И ОБА НАСТОЯЩИЕ. Почта первая: по ней приходит
+            заявка с готовой заготовкой письма. Телеграм вторым: им пишут,
+            когда вопрос короткий и письмо кажется тяжёлым — а на этой
+            странице как раз сказано, что тот же человек отвечает
+            и на вопросы по установке.
+
+            ЗНАЧКИ — ЧАСТЬ ССЫЛКИ, А НЕ УКРАШЕНИЕ: они показывают, КУДА
+            ведёт строка, до того как её прочли. `aria-hidden` на них
+            обязателен — рядом стоит текст, и читалке незачем объявлять
+            картинку дважды. Значки нарисованы путями в `currentColor`:
+            в тёмной теме они перекрасятся вместе с текстом сами.
+          -->
+          <p class="svyaz-svyazi">
+            <a class="svyaz-kanal" href="mailto:banksnab@gmail.com?subject=%D0%9F%D0%BB%D0%B0%D1%82%D1%84%D0%BE%D1%80%D0%BC%D0%B0%20%D0%90%D0%A0%D0%A5%D0%98%20%E2%80%94%20%D0%B7%D0%B0%D1%8F%D0%B2%D0%BA%D0%B0&amp;body=%D0%9E%D1%80%D0%B3%D0%B0%D0%BD%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F%3A%0A%D0%A7%D1%82%D0%BE%20%D0%BD%D1%83%D0%B6%D0%BD%D0%BE%20(%D0%BF%D0%BE%D0%BA%D0%B0%D0%B7%20%2F%20%D0%B4%D0%B8%D1%81%D1%82%D1%80%D0%B8%D0%B1%D1%83%D1%82%D0%B8%D0%B2%20%2F%20%D0%BF%D0%B8%D0%BB%D0%BE%D1%82)%3A%0A%D0%A1%D0%BA%D0%BE%D0%BB%D1%8C%D0%BA%D0%BE%20%D0%BE%D0%B1%D1%8A%D0%B5%D0%BA%D1%82%D0%BE%D0%B2%3A%0A">
+              <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" d="M1.6 4.1h12.8v7.8H1.6z"/><path fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" d="m1.9 4.4 6.1 4.3 6.1-4.3"/></svg>
+              banksnab@gmail.com
+            </a>
+            <a class="svyaz-kanal" href="https://t.me/OlegBarbashin"
+               target="_blank" rel="noopener noreferrer">
+              <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" d="M14.4 2.4 1.9 7.3l3.4 1.2 7.9-5-6.2 5.9.3 3.9 2-2.6 3.4 2.5z"/></svg>
+              @OlegBarbashin
+            </a>
           </p>
         </div>
       </div>
