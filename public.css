@@ -82,10 +82,43 @@
   padding: 1.4rem 1.5rem;
 }
 
+/* Снимок и подпись — одной строкой, пока строка помещается. На узком
+   экране перенос разрешён: адрес важнее, чем соседство с фотографией,
+   и ужимать его ради неё нельзя. */
+.svyaz-kto {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+  flex-wrap: wrap;
+}
+
+/* Круг обязан остаться кругом: `flex: 0 0 auto` не даёт раскладке ужать
+   фотографию в овал, когда подписи рядом не хватает места, а `object-fit`
+   не даёт растянуть сам снимок. */
+.svyaz-foto {
+  flex: 0 0 auto;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
+}
+
+.svyaz-podpis { min-width: 0; }
+
+.svyaz-imya {
+  display: block;
+  color: #0f172a;
+  font-size: 1.05rem;
+  margin-bottom: 0.15rem;
+}
+
 /* Адрес набран крупно намеренно: это единственное действие раздела,
    и глазу не должно приходиться его искать. */
 .svyaz-adres {
-  margin: 0 0 0.8rem;
+  margin: 0;
   font-size: 1.5rem;
   font-weight: 600;
   line-height: 1.3;
@@ -104,8 +137,6 @@
   border-left: 3px solid #cbd5e1;
   padding-left: 1rem;
 }
-
-.zapaska { margin-top: 1.2rem; color: #64748b; font-size: 0.92rem; }
 
 /* --- Отдельные страницы: политика и «адреса нет» ------------------------- */
 
@@ -126,6 +157,12 @@
      чем в одну, а перенос посреди почты выглядит как опечатка. */
   .svyaz { padding: 1.1rem 1.2rem; }
   .svyaz-adres { font-size: 1.2rem; }
+
+  /* Фотография мельче, промежуток уже: на узком экране снимок и адрес
+     должны остаться в одной строке. Разорви их перенос — и адрес,
+     ради которого раздел существует, уедет под фотографию. */
+  .svyaz-foto { width: 56px; height: 56px; }
+  .svyaz-kto { gap: 0.8rem; }
 }
 
 /* --- Как это выглядит ---------------------------------------------------- */
