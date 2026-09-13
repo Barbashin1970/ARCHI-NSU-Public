@@ -17,7 +17,10 @@ cd "$(dirname "$0")"
 
 cp "$IZDELIE/style.css"   style.css
 cp "$IZDELIE/favicon.svg" favicon.svg
-cp "$IZDELIE/arhi.ico"    arhi.ico
+# Значок переименовывается при переносе. В изделии он `arhi.ico`, здесь —
+# `favicon.ico`: по этому имени его просят браузеры и мессенджеры сами,
+# не читая разметку, и под именем `arhi.ico` он лежал впустую.
+cp "$IZDELIE/arhi.ico"    favicon.ico
 
 # Картинки витрины: ужимаются так же, как при первой сборке.
 sips -s format jpeg -s formatOptions 82 -Z 1600 "$IZDELIE/img/geroy-2.png" --out img/geroy-2.jpg >/dev/null

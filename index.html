@@ -17,7 +17,11 @@
 <meta property="og:locale" content="ru_RU">
 <meta name="twitter:card" content="summary_large_image">
 
+<!-- Два значка, и это не запас на всякий случай: SVG берут современные
+     браузеры, ICO просят те, кто разметку не читает вовсе, — мессенджеры
+     и почтовые клиенты дёргают /favicon.ico напрямую. -->
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" sizes="32x32" href="/favicon.ico">
 <link rel="stylesheet" href="/style.css">
 <link rel="stylesheet" href="/public.css">
 <script src="/public.js" defer></script>
@@ -735,17 +739,34 @@
       </div>
     </form>
 
+    <!-- АДРЕСА ЗДЕСЬ НЕТ НАМЕРЕННО. Ссылку собирает public.js: написанный
+         в разметке адрес собирают рассыльщики, и никакая почтовая защита
+         потом этого не отменит. До 13.09.2026 адрес стоял тут же, в `href`,
+         а скрипт переписывал его тем же самым — приём не работал вовсе.
+         Цена решения названа вслух в <noscript>: без скриптов ссылки нет,
+         поэтому там адрес дан словами, какие робот читает хуже человека. -->
     <p class="zapaska">
       Форма не сработала или вы не хотите её заполнять —
       <a id="pochta-zapaska"
-         href="mailto:banksnab@gmail.com?subject=%D0%9F%D0%BB%D0%B0%D1%82%D1%84%D0%BE%D1%80%D0%BC%D0%B0%20%D0%90%D0%A0%D0%A5%D0%98">напишите
-      на почту</a>: ответ будет тот же.
+         data-tema="Платформа АРХИ — заявка"
+         data-zagotovka="Организация:|Что нужно (показ / дистрибутив / пилот):|Сколько объектов:|"
+         >напишите на почту</a>: ответ будет тот же.
     </p>
+    <noscript>
+      <p class="zapaska">
+        Скрипты отключены, поэтому ни форма, ни ссылка на почту не работают.
+        Адрес: <b>banksnab</b> собака <b>gmail</b> точка <b>com</b>.
+      </p>
+    </noscript>
   </div>
 </section>
 
 <section class="itog" id="effekt">
-  <img class="itog-kartinka" src="/img/geroy.jpg" alt="" onerror="this.remove()">
+  <!-- Отложенная загрузка, а не жадная: снимок весит 288 КБ и лежит глубоко
+       под сгибом. Скачка вёрстки от откладывания не будет — высоту держит
+       `aspect-ratio` в style.css, а не сама картинка. -->
+  <img class="itog-kartinka" src="/img/geroy.jpg" alt="" loading="lazy"
+       onerror="this.remove()">
   <div class="itog-zatemnenie"></div>
   <div class="polosa itog-soderzhimoe">
     <h2>Чего ждать от внедрения</h2>

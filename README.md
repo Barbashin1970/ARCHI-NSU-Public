@@ -33,6 +33,13 @@
 | `vercel.json` | заголовки и `trailingSlash: false` |
 | `img/` | то, что отдаётся людям: снимки ужаты до 1600 px по ширине |
 | `ishodniki-kartinok/` | исходные снимки экрана. Наверх не уезжают (`.vercelignore`) |
+| `favicon.svg` / `favicon.ico` | значок. SVG читают браузеры, ICO просят мессенджеры — напрямую по `/favicon.ico`, не заглядывая в разметку |
+
+**Этот файл наверх не уезжает.** `.vercelignore` отсекает все `*.md`, и README
+в том числе. Приватность репозитория тут ни при чём: репозиторий приватный,
+а деплой публичный, и файл отдавался бы по `/README.md` кому угодно — вместе
+с порядком публикации, именами переменных окружения и оценкой прав на чужие
+данные. Читали бы его ровно те, про кого он написан.
 
 ---
 
@@ -99,12 +106,15 @@ grep -rl "$STARYY" index.html politika.html sitemap.xml robots.txt \
 S=https://arhi-nsu.vercel.app
 
 # 1. Живые адреса обязаны отдавать 200
-for p in / /politika.html /style.css /public.css /public.js /img/chat-svodka.jpg; do
+for p in / /politika.html /style.css /public.css /public.js \
+         /favicon.svg /favicon.ico /img/chat-svodka.jpg; do
   printf "%-28s %s\n" "$p" "$(curl -s -o /dev/null -w '%{http_code}' "$S$p")"
 done
 
-# 2. Несуществующее обязано отдавать 404, а не главную страницу
-for p in /net-takoy-stranicy /wp-login.php /stroyportfel.html; do
+# 2. Несуществующее обязано отдавать 404, а не главную страницу.
+#    /README.md здесь не для полноты: он лежит в репозитории рядом
+#    и попал бы наверх, забудь мы про .vercelignore.
+for p in /net-takoy-stranicy /wp-login.php /stroyportfel.html /README.md; do
   printf "%-28s %s\n" "$p" "$(curl -s -o /dev/null -w '%{http_code}' "$S$p")"
 done
 
@@ -117,7 +127,25 @@ curl -s -o /dev/null -w '%{http_code}\n' "$S/politika.html/"   # ждём 308
 # 5. Форма: отказ без согласия — это правильный ответ
 curl -s -X POST "$S/api/zayavka" -H 'Content-Type: application/json' \
      -d '{"imya":"Проверка","organizaciya":"Проверка","pochta":"a@b.ru","cel":"pokaz","soglasie":false,"sekund":9}'
+
+# 6. Сломанное тело обязано дать 400 словами, а не 500 от упавшей функции
+curl -s -X POST "$S/api/zayavka" -H 'Content-Type: application/json' -d '{сломано'
+
+# 7. Заявка с чужой страницы. Ответ «ok» — правильный: роботу не сообщают,
+#    на чём он попался. Что она отброшена, видно в журнале Vercel.
+curl -s -X POST "$S/api/zayavka" -H 'Content-Type: application/json' \
+     -H 'Origin: https://chuzhoy-sayt.example' \
+     -d '{"imya":"Проверка","organizaciya":"Проверка","pochta":"a@b.ru","cel":"pokaz","soglasie":true,"sekund":9}'
 ```
+
+**Про заслоны у формы.** Их три, и держатся они на разном. Поле-приманка
+и время заполнения стерегут страницу: запрос мимо неё подделает и пустое
+«отчество», и `sekund: 99`. Поэтому добавлены два, которые отправителя
+о нём самом не спрашивают: заголовок `Origin` браузер проставляет сам,
+и со страницы его не подменить, а счётчик пропускает пять заявок с адреса
+в час. Счётчик живёт в памяти запущенного экземпляра функции — рассылку
+с десяти адресов он не остановит. Это заслон от случайного перебора,
+а не от осады; настоящий предел — квота Resend в 3 000 писем в месяц.
 
 **Почему здесь нет сплошной переадресации `/(.*) → /index.html`.** Это
 канонический рецепт для одностраничных приложений, и он же делает сайт

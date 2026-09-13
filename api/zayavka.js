@@ -48,6 +48,58 @@ const BYSTREE_CHELOVEKA_SEK = 3;
 
 const POCHTA_OBRAZEC = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
+/* Сколько заявок с одного адреса пропускаем за час.
+ *
+ * ПОЧЕМУ ТАК ГРУБО. Обе ловушки выше — поле-приманка и время заполнения —
+ * стерегут форму, а не этот адрес: и пустое «отчество», и `sekund: 99`
+ * подделываются запросом мимо страницы за одну строку. Значит нужна мера,
+ * которая не спрашивает отправителя о нём самом. Счётчик по адресу —
+ * такая мера.
+ *
+ * ЧЕГО ОНА НЕ УМЕЕТ. Память живёт внутри одного запущенного экземпляра
+ * функции: Vercel держит их несколько и гасит простаивающие, поэтому
+ * рассылка с десяти адресов или после паузы счётчик обойдёт. Это заслон
+ * от случайного перебора, а не от осады. Настоящий предел — квота Resend
+ * в 3 000 писем в месяц; ради десятка заявок заводить хранилище дороже,
+ * чем пережить редкий прорыв.
+ */
+const ZAYAVOK_S_ADRESA_V_CHAS = 5;
+const CHAS_MS = 60 * 60 * 1000;
+const schetchik = new Map();
+
+function slishkomChasto(adres) {
+    if (!adres) { return false; }
+    const teper = Date.now();
+
+    /* Подчистка заодно с проверкой: отдельного дворника у функции,
+       которая засыпает между запросами, быть не может. */
+    for (const [kto, kogda] of schetchik) {
+        if (teper - kogda[0] > CHAS_MS) { schetchik.delete(kto); }
+    }
+
+    const bylo = (schetchik.get(adres) || []).filter((k) => teper - k < CHAS_MS);
+    if (bylo.length >= ZAYAVOK_S_ADRESA_V_CHAS) { return true; }
+    bylo.push(teper);
+    schetchik.set(adres, bylo);
+    return false;
+}
+
+/* Откуда пришёл запрос.
+ *
+ * Браузер проставляет `Origin` сам, и подделать его со страницы нельзя —
+ * поэтому чужой сайт не сможет отправлять заявки нашей формой. Запрос
+ * вообще без `Origin` (curl, почтовый клиент, старый браузер) пропускается:
+ * отказ по его отсутствию отрезал бы и живых людей, а ловушки выше никуда
+ * не делись.
+ */
+function chuzhoyIstochnik(zapros) {
+    const istochnik = zapros.headers && (zapros.headers.origin
+        || zapros.headers.Origin);
+    if (!istochnik) { return false; }
+    const svoy = zapros.headers.host || zapros.headers.Host || "";
+    return istochnik.replace(/^https?:\/\//, "") !== svoy;
+}
+
 function obrezat(znachenie, dlina) {
     return String(znachenie === undefined || znachenie === null ? "" : znachenie)
         .trim().slice(0, dlina);
@@ -118,8 +170,28 @@ module.exports = async (zapros, otvet) => {
         return otvet.status(405).json({ ok: false, oshibka: "Только POST." });
     }
 
-    const telo = typeof zapros.body === "string"
-        ? JSON.parse(zapros.body || "{}") : (zapros.body || {});
+    /* Тело разбирается под присмотром. Vercel обычно разбирает JSON сам,
+       но при чужом заголовке типа отдаёт строку как есть — и сломанная
+       строка роняла бы функцию с 500 вместо честного «не разобрал».
+       Первым же это находит любой сканер уязвимостей. */
+    let telo;
+    try {
+        telo = typeof zapros.body === "string"
+            ? JSON.parse(zapros.body || "{}") : (zapros.body || {});
+    } catch (sboy) {
+        return otvet.status(400).json({ ok: false, oshibka: "Заявка не разобрана." });
+    }
+    if (typeof telo !== "object" || telo === null || Array.isArray(telo)) {
+        return otvet.status(400).json({ ok: false, oshibka: "Заявка не разобрана." });
+    }
+
+    /* Запрос с чужой страницы нашей формой — не заявка. Молча, как ловушки:
+       отказ словами подсказал бы, что именно обходить. */
+    if (chuzhoyIstochnik(zapros)) {
+        console.log("заявка отброшена: чужой источник",
+            zapros.headers.origin || zapros.headers.Origin);
+        return otvet.status(200).json({ ok: true });
+    }
 
     const itog = proverit(telo);
     if (itog.molcha) {
@@ -132,6 +204,21 @@ module.exports = async (zapros, otvet) => {
         return otvet.status(400).json({ ok: false, oshibka: itog.oshibka });
     }
     const d = itog.dannye;
+
+    /* Сетевой адрес берётся из заголовка, который проставляет сам Vercel;
+       первый в списке — тот, кто пришёл, остальные дописаны по пути. */
+    const otkuda = String((zapros.headers && (zapros.headers["x-forwarded-for"]
+        || zapros.headers["x-real-ip"])) || "").split(",")[0].trim();
+
+    if (slishkomChasto(otkuda)) {
+        console.log("заявка отброшена: с адреса уже пришло",
+            ZAYAVOK_S_ADRESA_V_CHAS, "за час");
+        return otvet.status(429).json({
+            ok: false,
+            oshibka: "С этого адреса уже пришло несколько заявок. "
+                + "Напишите письмом — ссылка ниже, ответ будет тот же."
+        });
+    }
 
     if (!KLYUCH || !POCHTA) {
         /* Заявка не теряется: человеку прямо сказано, что делать дальше. */
