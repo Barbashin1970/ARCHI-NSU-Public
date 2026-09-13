@@ -28,6 +28,26 @@
 (function () {
     var POROG_PIKSELEY = 8;
 
+    /* Точная высота шапки — в переменную, которой пользуется scroll-padding-top
+       в public.css. Отдаём ЧИСТЫЙ замер, без прибавок: воздух между шапкой
+       и заголовком добавляет сам CSS, и живёт эта величина в одном месте.
+     *
+     * ЗАЧЕМ ЭТО СКРИПТОМ, ЕСЛИ В CSS УЖЕ ЕСТЬ ЗНАЧЕНИЯ. В CSS они ступенями
+     * по ширине окна, а ступени зависят от того, на сколько строк перенеслось
+     * меню, — то есть от ширины русских слов в системном шрифте. На Windows
+     * шрифт другой, и точки перелома сдвинутся. Скрипт не гадает: он меряет.
+     *
+     * CSS при этом остаётся самостоятельным. Не выполнился скрипт — работает
+     * запас из медиазапросов; выполнился — работает замер.
+     */
+    function otmeritShapku() {
+        var shapka = document.querySelector("header.shapka");
+        if (!shapka) { return; }
+        var vysota = Math.round(shapka.getBoundingClientRect().height);
+        if (!vysota) { return; }
+        document.documentElement.style.setProperty("--vysota-shapki", vysota + "px");
+    }
+
     function nastroitShapku() {
         var shapka = document.querySelector("header.shapka");
         if (!shapka) { return; }
@@ -48,9 +68,35 @@
         obnovit();
     }
 
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", nastroitShapku);
-    } else {
+    /* Ширина окна поменялась — меню могло перенестись на другое число строк,
+       и шапка сменила высоту. Меряем заново, но не на каждое событие: в кадре
+       достаточно одного замера, иначе перетаскивание края окна выливается
+       в сотни пересчётов раскладки. Тот же приём, что у прокрутки выше. */
+    function sledit() {
+        var zaprosheno = false;
+        window.addEventListener("resize", function () {
+            if (zaprosheno) { return; }
+            zaprosheno = true;
+            window.requestAnimationFrame(function () {
+                zaprosheno = false;
+                otmeritShapku();
+            });
+        }, { passive: true });
+    }
+
+    function nachat() {
+        otmeritShapku();
         nastroitShapku();
+        sledit();
+        /* Второй замер после загрузки шрифтов: системный шрифт подставляется
+           сразу, но если браузер заменил его на ходу, высота строки меню могла
+           измениться вместе с числом строк. */
+        window.addEventListener("load", otmeritShapku);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", nachat);
+    } else {
+        nachat();
     }
 })();
