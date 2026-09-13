@@ -1,7 +1,7 @@
 /* Добавки визитки поверх стилей изделия.
  *
- * Что делает: оформляет то, чего в изделии нет, — состав поставки, форму
- *             заявки и кнопку в шапке.
+ * Что делает: оформляет то, чего в изделии нет, — состав поставки, блок
+ *             «связаться» и кнопку в шапке.
  * Кто зовёт:  index.html, politika.html, 404.html — подключением после style.css.
  *
  * ПОЧЕМУ ОТДЕЛЬНЫМ ФАЙЛОМ, А НЕ ПРАВКОЙ style.css. Файл стилей изделия
@@ -64,108 +64,48 @@
   padding-left: 1rem;
 }
 
-/* --- Форма заявки -------------------------------------------------------- */
+/* --- Связаться ----------------------------------------------------------- */
 
 .zayavka { background: #fff; border-top: 1px solid #e2e8f0; }
 
-.forma {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
-  gap: 1rem 1.2rem;
-  max-width: 52rem;
-  margin-top: 1.6rem;
+/* Здесь была форма из пяти полей со своей раскладкой, ловушкой для роботов
+   и тремя видами ответа под кнопкой. Её сняли вместе с серверной функцией
+   13.09.2026: письмо приходило в тот же ящик, в который человек и так может
+   написать. Осталось то, ради чего форма стояла, — адрес. */
+
+.svyaz {
+  margin: 1.6rem 0 1.4rem;
+  max-width: 46rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.4rem 1.5rem;
 }
 
-.pole-shirokoe { grid-column: 1 / -1; }
-
-.pole { display: flex; flex-direction: column; gap: 0.35rem; }
-
-.pole > span { font-size: 0.92rem; color: #334155; font-weight: 600; }
-.pole > span i { font-weight: 400; color: #64748b; font-style: normal; }
-
-.pole input,
-.pole select,
-.pole textarea {
-  font: inherit;
-  color: #0f172a;
-  background: #fff;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  padding: 0.6rem 0.7rem;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.pole textarea { resize: vertical; min-height: 4.5rem; }
-
-.pole input:focus,
-.pole select:focus,
-.pole textarea:focus {
-  outline: 2px solid #2563eb;
-  outline-offset: 1px;
-  border-color: #2563eb;
-}
-
-/* Поле с ошибкой помечается ЦВЕТОМ И ТЕКСТОМ, а не одним цветом: рамка
-   у того, кто различает цвета хуже, не читается вовсе. */
-.pole.ne-tak input,
-.pole.ne-tak select { border-color: #b91c1c; background: #fef2f2; }
-
-.pole .zamechanie { font-size: 0.85rem; color: #b91c1c; }
-
-.soglasie {
-  display: flex;
-  gap: 0.6rem;
-  align-items: flex-start;
-  font-size: 0.92rem;
-  color: #475569;
-  line-height: 1.5;
-}
-
-.soglasie input { margin-top: 0.2rem; flex: 0 0 auto; }
-
-/* Ловушка для роботов. Не `display: none`: часть рассыльщиков такие поля
-   пропускает намеренно. Поле остаётся в разметке, но уводится за экран
-   и снимается с обхода клавиатурой. */
-.pole-lovushka {
-  position: absolute;
-  left: -9999px;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-}
-
-.otpravka { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-
-.knopka-zayavki {
-  font: inherit;
+/* Адрес набран крупно намеренно: это единственное действие раздела,
+   и глазу не должно приходиться его искать. */
+.svyaz-adres {
+  margin: 0 0 0.8rem;
+  font-size: 1.5rem;
   font-weight: 600;
-  color: #fff;
-  background: #1d4ed8;
-  border: 0;
-  border-radius: 10px;
-  padding: 0.75rem 1.6rem;
-  cursor: pointer;
+  line-height: 1.3;
+  /* Длинная почта на узком экране переносится, а не вылезает за край. */
+  overflow-wrap: anywhere;
 }
 
-.knopka-zayavki:hover { background: #1e40af; }
-.knopka-zayavki:disabled { background: #94a3b8; cursor: progress; }
+.svyaz-adres a { color: #1d4ed8; }
 
-.otvet-formy { margin: 0; font-size: 0.95rem; }
-.otvet-formy.udalos { color: #15803d; font-weight: 600; }
-.otvet-formy.ne-udalos { color: #b91c1c; }
+.svyaz-chto { margin: 0; color: #475569; line-height: 1.6; }
+
+.svyaz-podderzhka {
+  max-width: 46rem;
+  color: #475569;
+  line-height: 1.65;
+  border-left: 3px solid #cbd5e1;
+  padding-left: 1rem;
+}
 
 .zapaska { margin-top: 1.2rem; color: #64748b; font-size: 0.92rem; }
-
-/* Ссылка на почту приходит без адреса: его подставляет public.js, чтобы
-   не отдавать рассыльщикам. Пока адреса нет, ссылка не притворяется
-   ссылкой — подчёркнутый текст, который никуда не ведёт, читается как
-   поломка сайта. Разметку без скриптов подхватывает <noscript>. */
-#pochta-zapaska:not([href]) {
-  color: inherit;
-  text-decoration: none;
-  cursor: default;
-}
 
 /* --- Отдельные страницы: политика и «адреса нет» ------------------------- */
 
@@ -182,7 +122,10 @@
 .tekstovaya-stranica .nazad { display: inline-block; margin-top: 2rem; }
 
 @media (max-width: 640px) {
-  .forma { grid-template-columns: 1fr; }
+  /* Адрес на узком экране чуть мельче: в две строки он читается хуже,
+     чем в одну, а перенос посреди почты выглядит как опечатка. */
+  .svyaz { padding: 1.1rem 1.2rem; }
+  .svyaz-adres { font-size: 1.2rem; }
 }
 
 /* --- Как это выглядит ---------------------------------------------------- */
