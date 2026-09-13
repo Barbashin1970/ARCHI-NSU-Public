@@ -13,6 +13,82 @@
  * визитке, живёт в этом файле.
  */
 
+/* --- Цвета: свои токены поверх токенов изделия --------------------------- */
+
+/*
+ * ПОЧЕМУ ЭТОТ ФАЙЛ ВООБЩЕ ПРИШЛОСЬ ЧИНИТЬ. style.css объявляет
+ * `color-scheme: light dark` и полный тёмный набор токенов, а public.css
+ * был написан на литеральных цветах — 37 штук, ни одного `var()`.
+ * На устройстве с тёмным оформлением страница уходила в тёмное, а разделы
+ * отсюда оставались белыми: шли полосами, и заголовки на них теряли
+ * контраст. Проверено на телефоне владельца 13.09.2026.
+ *
+ * ЧИНИТСЯ ПЕРЕХОДОМ НА ТОКЕНЫ, а не отдельной тёмной темой: палитра уже
+ * есть в изделии, и держать вторую значит завести расхождение.
+ * В светлом виде не меняется НИ ОДИН пиксель — подставлены ровно те
+ * значения, что стояли литералами.
+ *
+ * ДВУХ УРОВНЕЙ В ПАЛИТРЕ ИЗДЕЛИЯ НЕТ, и они заведены здесь:
+ *
+ * --tekst-vtoroy — основной текст карточек. В светлом это slate-600
+ *   (#475569). Подставить вместо него `--tekst-tusklyy` было нельзя:
+ *   тот светлее (slate-500), и абзацы поплыли бы уже в светлой теме.
+ *   А взять `--slate-600` напрямую нельзя тем более: палитра в тёмной
+ *   теме НЕ переопределяется — переопределены только смысловые токены,
+ *   и тёмно-серый лёг бы на тёмный фон.
+ *
+ * --akcent-tekst — синий для ссылок и значков. В светлом blue-700
+ *   (#1d4ed8), как было. В тёмной теме он даёт на карточке #161b22
+ *   около 2.8:1 — нечитаемо, поэтому там он светлее.
+ */
+:root {
+  --tekst-vtoroy: #475569;
+  --akcent-tekst: #1d4ed8;
+}
+
+/*
+ * ВИЗИТКА ЗАПЕРТА В СВЕТЛОЙ ТЕМЕ, И ЭТО РЕШЕНИЕ, А НЕ НЕДОДЕЛКА.
+ *
+ * style.css — файл ИЗДЕЛИЯ, и тёмная тема ему нужна: это рабочий
+ * инструмент, за ним сидят днями. Визитка — маркетинговая страница
+ * с тёмным фотогероем по замыслу; вторая тёмная тема ей не нужна,
+ * а достаётся по наследству.
+ *
+ * ЧТО ЛОМАЛОСЬ. Владелец 13.09.2026 открыл страницу на iPhone 11 со
+ * СВЕТЛОЙ темой в настройках — и увидел тёмное сверху до «Легко
+ * настроить» и светлое ниже. Тему навязал встроенный браузер (так делает
+ * Telegram, когда сам тёмный), а дальше страница разъехалась по шву между
+ * двумя файлами: что красил style.css — ушло в тёмное, что public.css —
+ * осталось светлым, потому что цвета там стояли литералами. Граница
+ * прошла по первому разделу со своим фоном отсюда.
+ *
+ * КАК ЗАПЕРТО. Смысловые токены изделия переопределяются здесь обратно
+ * на светлые значения. public.css подключён ПОСЛЕ style.css, поэтому
+ * побеждает он. Плюс `meta name="color-scheme" content="light"`
+ * в разметке — одного его мало, проверено: он говорит браузеру, какие
+ * темы поддержаны, но media-запрос в чужом файле не отключает.
+ *
+ * Понадобится когда-нибудь настоящая тёмная визитка — этот блок убирается
+ * целиком, и всё уже готово: цвета переведены на токены, литералов не
+ * осталось. Именно ради этого перевод и сделан, хотя сегодня он работает
+ * на светлую тему.
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fon: #f8fafc;
+    --fon-kartochki: #ffffff;
+    --fon-vydelen: #f1f5f9;
+    --tekst: #0f172a;
+    --tekst-tusklyy: #64748b;
+    --granica: #e2e8f0;
+    --akcent: #2563eb;
+    --shapka-prokruchena: rgba(248, 250, 252, 0.82);
+
+    --tekst-vtoroy: #475569;
+    --akcent-tekst: #1d4ed8;
+  }
+}
+
 /* --- Якорь не должен приезжать под шапку --------------------------------- */
 
 /*
@@ -105,6 +181,11 @@ html {
  * приглушение, которое style.css вешает на все ссылки меню: кнопка —
  * не пункт меню, и притухать вместе с ними ей незачем.
  */
+/* ЦВЕТА КНОПКИ — ЛИТЕРАЛЫ, И ЭТО НЕ ЗАБЫТЫЙ ПЕРЕВОД НА ТОКЕНЫ.
+   Шапка наверху страницы залита синим градиентом в ОБЕИХ темах: style.css
+   не переопределяет его для тёмной. Значит и кнопка на ней обязана быть
+   белой в обеих. Подставь сюда `--fon-kartochki` — в тёмной теме он станет
+   #161b22, и кнопка снова пропадёт, теперь уже тёмным по синему. */
 .shapka .razdely .knopka-shapki {
   opacity: 1;
   background: #ffffff;
@@ -125,11 +206,11 @@ html {
 
 /* --- Состав поставки ----------------------------------------------------- */
 
-.postavka { background: #f8fafc; border-top: 1px solid #e2e8f0; }
+.postavka { background: var(--fon); border-top: 1px solid var(--granica); }
 
 .podzagolovok-razdela {
   max-width: 46rem;
-  color: #475569;
+  color: var(--tekst-vtoroy);
   font-size: 1.05rem;
 }
 
@@ -158,8 +239,8 @@ html {
 }
 
 .sostav-punkt {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--fon-kartochki);
+  border: 1px solid var(--granica);
   border-radius: 12px;
   padding: 1.1rem 1.2rem;
 }
@@ -167,22 +248,22 @@ html {
 .sostav-punkt b {
   display: block;
   font-size: 1.35rem;
-  color: #1e3a8a;
+  color: var(--akcent-tekst);
   margin-bottom: 0.35rem;
 }
 
-.sostav-punkt span { color: #475569; font-size: 0.95rem; line-height: 1.5; }
+.sostav-punkt span { color: var(--tekst-vtoroy); font-size: 0.95rem; line-height: 1.5; }
 
 .sostav-ogovorka {
   max-width: 46rem;
-  color: #475569;
-  border-left: 3px solid #cbd5e1;
+  color: var(--tekst-vtoroy);
+  border-left: 3px solid var(--granica);
   padding-left: 1rem;
 }
 
 /* --- Связаться ----------------------------------------------------------- */
 
-.zayavka { background: #fff; border-top: 1px solid #e2e8f0; }
+.zayavka { background: var(--fon-kartochki); border-top: 1px solid var(--granica); }
 
 /* Здесь была форма из пяти полей со своей раскладкой, ловушкой для роботов
    и тремя видами ответа под кнопкой. Её сняли вместе с серверной функцией
@@ -192,8 +273,8 @@ html {
 .svyaz {
   margin: 1.6rem 0 1.4rem;
   max-width: 46rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--fon);
+  border: 1px solid var(--granica);
   border-radius: 12px;
   padding: 1.4rem 1.5rem;
 }
@@ -218,7 +299,7 @@ html {
   height: 72px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #fff;
+  border: 2px solid var(--fon-kartochki);
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
 }
 
@@ -226,7 +307,7 @@ html {
 
 .svyaz-imya {
   display: block;
-  color: #0f172a;
+  color: var(--tekst);
   font-size: 1.15rem;
   line-height: 1.3;
   margin-bottom: 0.1rem;
@@ -246,7 +327,7 @@ html {
  */
 .svyaz-dolzhnost {
   margin: 0 0 0.55rem;
-  color: #64748b;
+  color: var(--tekst-tusklyy);
   font-size: 0.92rem;
   line-height: 1.4;
 }
@@ -267,7 +348,7 @@ html {
   display: inline-flex;
   align-items: center;
   gap: 0.42rem;
-  color: #1d4ed8;
+  color: var(--akcent-tekst);
   font-size: 0.95rem;
   font-weight: 600;
   text-decoration: none;
@@ -284,18 +365,18 @@ html {
   flex: 0 0 auto;
   width: 1rem;
   height: 1rem;
-  color: #64748b;
+  color: var(--tekst-tusklyy);
 }
 
-.svyaz-kanal:hover svg { color: #1d4ed8; }
+.svyaz-kanal:hover svg { color: var(--akcent-tekst); }
 
-.svyaz-chto { margin: 0; color: #475569; line-height: 1.6; }
+.svyaz-chto { margin: 0; color: var(--tekst-vtoroy); line-height: 1.6; }
 
 .svyaz-podderzhka {
   max-width: 46rem;
-  color: #475569;
+  color: var(--tekst-vtoroy);
   line-height: 1.65;
-  border-left: 3px solid #cbd5e1;
+  border-left: 3px solid var(--granica);
   padding-left: 1rem;
 }
 
@@ -313,7 +394,7 @@ html {
 .tekstovaya-stranica h1 { margin-bottom: 0.6rem; }
 .tekstovaya-stranica h2 { margin-top: 2rem; font-size: 1.15rem; }
 .tekstovaya-stranica p,
-.tekstovaya-stranica li { color: #334155; line-height: 1.65; }
+.tekstovaya-stranica li { color: var(--tekst-vtoroy); line-height: 1.65; }
 .tekstovaya-stranica .nazad { display: inline-block; margin-top: 2rem; }
 
 @media (max-width: 640px) {
@@ -371,7 +452,7 @@ html {
   --sliyanie: 3rem;
   padding-top: 0;
   background:
-    linear-gradient(to bottom, #ffffff 0, rgba(255, 255, 255, 0) var(--sliyanie)),
+    linear-gradient(to bottom, var(--fon-kartochki) 0, rgba(255, 255, 255, 0) var(--sliyanie)),
     linear-gradient(to right, var(--blue-800), var(--blue-600));
 }
 
@@ -443,19 +524,19 @@ html {
   bottom: 0.6rem;
   width: 2px;
   margin-left: -1px;
-  background: #e2e8f0;
+  background: var(--granica);
 }
 
 .shag h3 {
   margin: 0 0 0.4rem;
   font-size: 1.15rem;
-  color: #0f172a;
+  color: var(--tekst);
 }
 
 .shag-chto {
   margin: 0;
   max-width: 46rem;
-  color: #475569;
+  color: var(--tekst-vtoroy);
   line-height: 1.6;
 }
 
@@ -479,14 +560,14 @@ html {
    к утверждению, а не экспонатом галереи. Поэтому селекторы общие:
    класс задаёт вид снимка, а не место, где он лежит. */
 
-.vid { background: #fff; border-top: 1px solid #e2e8f0; }
+.vid { background: var(--fon-kartochki); border-top: 1px solid var(--granica); }
 
 .snimok { margin: 1.8rem 0; }
 
 .snimok img {
   width: 100%;
   height: auto;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--granica);
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
   display: block;
@@ -495,7 +576,7 @@ html {
 .snimok figcaption,
 .snimok-chata figcaption {
   margin-top: 0.7rem;
-  color: #475569;
+  color: var(--tekst-vtoroy);
   font-size: 0.95rem;
   line-height: 1.55;
   max-width: 46rem;
@@ -529,7 +610,7 @@ html {
 /* Лента — точка остановки для клавиатуры, но рамку рисуем только тому,
    кто пришёл с клавиатуры: мышью по ней кликают, и обводка там лишняя. */
 .chat-snimki:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid var(--akcent);
   outline-offset: 4px;
   border-radius: 14px;
 }
@@ -543,7 +624,7 @@ html {
 
 .lenta-podskazka {
   margin: 0 0 1.4rem;
-  color: #64748b;
+  color: var(--tekst-tusklyy);
   font-size: 0.9rem;
   max-width: 54rem;
   text-align: center;
@@ -555,16 +636,16 @@ html {
 .ogovorka-demo {
   max-width: 54rem;
   margin: 0 0 1.6rem;
-  color: #475569;
+  color: var(--tekst-vtoroy);
   font-size: 0.95rem;
   line-height: 1.6;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--fon);
+  border: 1px solid var(--granica);
   border-radius: 10px;
   padding: 0.9rem 1.1rem;
 }
 
-.ogovorka-demo b { color: #0f172a; }
+.ogovorka-demo b { color: var(--tekst); }
 
 @media (max-width: 640px) {
   /* На телефоне карточка шире: 15rem там — это треть экрана, и текст
@@ -578,7 +659,7 @@ html {
   width: 100%;
   height: auto;
   border-radius: 14px;
-  border: 1px solid #1e293b;
+  border: 1px solid var(--granica);
   display: block;
 }
 
@@ -589,7 +670,7 @@ html {
 }
 
 .snimok-chata code {
-  background: #f1f5f9;
+  background: var(--fon-vydelen);
   border-radius: 4px;
   padding: 0.05rem 0.3rem;
 }
@@ -608,8 +689,8 @@ html {
 }
 
 .rabota-punkt {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--fon-kartochki);
+  border: 1px solid var(--granica);
   border-left: 3px solid #1d4ed8;
   border-radius: 10px;
   padding: 1rem 1.1rem;
@@ -618,12 +699,12 @@ html {
 .rabota-punkt b {
   display: block;
   font-size: 1.02rem;
-  color: #0f172a;
+  color: var(--tekst);
   margin-bottom: 0.4rem;
 }
 
 .rabota-punkt span {
-  color: #475569;
+  color: var(--tekst-vtoroy);
   font-size: 0.94rem;
   line-height: 1.55;
 }
