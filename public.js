@@ -48,15 +48,27 @@
         document.documentElement.style.setProperty("--vysota-shapki", vysota + "px");
     }
 
-    function nastroitShapku() {
+    /* Прокрутка обслуживает ДВЕ вещи сразу — шапку и кнопку «наверх», —
+       и делает это одним обработчиком на один кадр. Второй слушатель
+       прокрутки стоил бы ровно столько же, сколько первый, а измеряют
+       они одно и то же число. */
+    function nastroitProkrutku() {
         var shapka = document.querySelector("header.shapka");
-        if (!shapka) { return; }
+        var naverh = document.querySelector(".naverh");
+        if (!shapka && !naverh) { return; }
         var zaprosheno = false;
 
         function obnovit() {
             zaprosheno = false;
-            shapka.classList.toggle("prokruchena",
-                window.pageYOffset > POROG_PIKSELEY);
+            var proshli = window.pageYOffset;
+            if (shapka) {
+                shapka.classList.toggle("prokruchena", proshli > POROG_PIKSELEY);
+            }
+            /* Порог — высота экрана, а не фиксированные пиксели: на телефоне
+               и на мониторе «прокрутил заметно» — разное расстояние. */
+            if (naverh) {
+                naverh.classList.toggle("vidna", proshli > window.innerHeight);
+            }
         }
         function poprosit() {
             if (!zaprosheno) {
@@ -66,6 +78,30 @@
         }
         window.addEventListener("scroll", poprosit, { passive: true });
         obnovit();
+    }
+
+    /* Возврат наверх.
+     *
+     * ПЛАВНО — НЕ ВСЕГДА. Кому плавность отключена в системе, тот её
+     * отключил не из любопытства: у части людей прокрутка-анимация вызывает
+     * дурноту. Им страница просто оказывается наверху.
+     *
+     * Объектная форма `scrollTo` есть не везде, и старый Safari на ней
+     * молча ничего не делает вместо прокрутки. Поэтому вызов обёрнут,
+     * а запаска — та же прокрутка двумя числами, которую умеют все.
+     */
+    function nastroitNaverh() {
+        var naverh = document.querySelector(".naverh");
+        if (!naverh) { return; }
+        naverh.addEventListener("click", function () {
+            var plavno = !(window.matchMedia
+                && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+            try {
+                window.scrollTo({ top: 0, behavior: plavno ? "smooth" : "auto" });
+            } catch (sboy) {
+                window.scrollTo(0, 0);
+            }
+        });
     }
 
     /* Ширина окна поменялась — меню могло перенестись на другое число строк,
@@ -86,7 +122,8 @@
 
     function nachat() {
         otmeritShapku();
-        nastroitShapku();
+        nastroitProkrutku();
+        nastroitNaverh();
         sledit();
         /* Второй замер после загрузки шрифтов: системный шрифт подставляется
            сразу, но если браузер заменил его на ходу, высота строки меню могла
