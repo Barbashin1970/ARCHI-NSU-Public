@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Адрес один: визитка — одна страница. `politika.html` стояла здесь,
+     пока на сайте была форма заявки; форму и страницу сняли 13.09.2026.
+     `404.html` в карту не входит намеренно: она помечена noindex, и звать
+     на неё поиск незачем. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://arhi-nsu.vercel.app/</loc>
-    <lastmod>2026-09-13</lastmod>
-  </url>
-  <url>
-    <loc>https://arhi-nsu.vercel.app/politika.html</loc>
     <lastmod>2026-09-13</lastmod>
   </url>
 </urlset>

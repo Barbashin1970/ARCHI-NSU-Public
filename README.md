@@ -24,7 +24,6 @@
 | Файл | Что это |
 |---|---|
 | `index.html` | сама визитка: герой, что даёт, как выглядит, девять требований, эффект, состав поставки, как связаться |
-| `politika.html` | обработка персональных данных. Сайт не собирает ничего, и страница говорит именно это |
 | `404.html` | «такого адреса нет»; Vercel отдаёт её со статусом 404 сам, настройки не требует |
 | `style.css` | **копия** файла стилей изделия. Не править: затрётся при переносе |
 | `public.css` | всё, что нужно визитке сверх изделия: блок «связаться», снимки, состав |
@@ -72,14 +71,13 @@ gh repo create ARCHI-NSU-Public --private --source=. --push
 
 ### 3. Если адрес вышел не `arhi-nsu.vercel.app`
 
-Адрес прописан в четырёх местах: `canonical` и `og:` в `index.html`,
-`canonical` в `politika.html`, `sitemap.xml` и `robots.txt`. Поменять
-одной командой:
+Адрес прописан в трёх местах: `canonical` и `og:` в `index.html`,
+`sitemap.xml` и `robots.txt`. Поменять одной командой:
 
 ```bash
 STARYY=arhi-nsu.vercel.app
 NOVYY=<как назвали проект>.vercel.app
-grep -rl "$STARYY" index.html politika.html sitemap.xml robots.txt \
+grep -rl "$STARYY" index.html sitemap.xml robots.txt \
   | xargs sed -i '' "s|$STARYY|$NOVYY|g"
 ```
 
@@ -97,7 +95,7 @@ grep -rl "$STARYY" index.html politika.html sitemap.xml robots.txt \
 S=https://arhi-nsu.vercel.app
 
 # 1. Живые адреса обязаны отдавать 200
-for p in / /politika.html /style.css /public.css /public.js \
+for p in / /style.css /public.css /public.js \
          /favicon.svg /favicon.ico /img/chat-svodka.jpg; do
   printf "%-28s %s\n" "$p" "$(curl -s -o /dev/null -w '%{http_code}' "$S$p")"
 done
@@ -105,7 +103,7 @@ done
 # 2. Несуществующее обязано отдавать 404, а не главную страницу.
 #    /README.md здесь не для полноты: он лежит в репозитории рядом
 #    и попал бы наверх, забудь мы про .vercelignore.
-for p in /net-takoy-stranicy /wp-login.php /stroyportfel.html /README.md; do
+for p in /net-takoy-stranicy /wp-login.php /politika.html /README.md; do
   printf "%-28s %s\n" "$p" "$(curl -s -o /dev/null -w '%{http_code}' "$S$p")"
 done
 
@@ -113,7 +111,7 @@ done
 curl -sI "$S/" | grep -i x-vizitka          # ждём: x-vizitka: arhi
 
 # 4. Косая черта на конце обязана переадресовывать, а не давать 404
-curl -s -o /dev/null -w '%{http_code}\n' "$S/politika.html/"   # ждём 308
+curl -s -o /dev/null -w '%{http_code}\n' "$S/404.html/"        # ждём 308
 
 # 5. Серверных путей нет вовсе — бывшая функция обязана отдавать 404
 curl -s -o /dev/null -w '%{http_code}\n' "$S/api/zayavka"      # ждём 404
