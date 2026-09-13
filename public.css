@@ -268,6 +268,95 @@ html {
    а не два разных заявления. */
 .dispetcher-vvod + .dispetcher-vvod { margin-top: 0.9rem; }
 
+/* --- Шаги настройки ------------------------------------------------------ */
+
+/*
+ * Три шага с кружками и линией между ними.
+ *
+ * ЛИНИЯ ЗДЕСЬ НЕ УКРАШЕНИЕ. Проход сдержанности спрашивает: убрать —
+ * потеряется смысл или только вид? Номера говорят «их три», линия говорит
+ * «они идут подряд и переставить нельзя» — а порядок здесь и есть суть:
+ * пока норма не записана, применять нечего; пока адресаты не названы,
+ * писать некому. Поэтому линия остаётся, но тонкая и в цвет границы.
+ *
+ * Номера рисует счётчик CSS, а не разметка: в разметке настоящий <ol>,
+ * и голосовая читалка объявляет «список из трёх», а не три отдельных
+ * заголовка. Кружок при этом aria-невидим — счётчик в `content`
+ * читалками не озвучивается, и номер не прозвучит дважды.
+ */
+.shagi {
+  list-style: none;
+  counter-reset: shag;
+  margin: 2rem 0 1.6rem;
+  padding: 0;
+}
+
+.shag {
+  counter-increment: shag;
+  position: relative;
+  padding-left: 3.5rem;
+  padding-bottom: 2.4rem;
+}
+
+.shag:last-child { padding-bottom: 0; }
+
+.shag::before {
+  content: counter(shag);
+  position: absolute;
+  left: 0;
+  top: -0.15rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  /* flex, а не line-height: цифра встаёт по центру кружка при любом
+     системном шрифте, а они у macOS и Windows с разной высотой строки. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Линия от кружка к кружку. Последнему не нужна: вести некуда. */
+.shag:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 1.125rem;
+  top: 2.4rem;
+  bottom: 0.6rem;
+  width: 2px;
+  margin-left: -1px;
+  background: #e2e8f0;
+}
+
+.shag h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1.15rem;
+  color: #0f172a;
+}
+
+.shag-chto {
+  margin: 0;
+  max-width: 46rem;
+  color: #475569;
+  line-height: 1.6;
+}
+
+/* Снимок внутри шага прижат к своему тексту: он ему принадлежит,
+   а не разделяет шаги. Сверху меньше, чем у одиночного снимка. */
+.shag .snimok { margin: 1.1rem 0 0; }
+
+@media (max-width: 40rem) {
+  /* На телефоне отступ слева съедает ширину снимка. Кружок мельче,
+     колонка уже — снимок отыгрывает 14 px, и таблица на нём остаётся
+     хоть немного разборчивой. */
+  .shag { padding-left: 2.75rem; }
+  .shag::before { width: 1.85rem; height: 1.85rem; font-size: 0.95rem; }
+  .shag:not(:last-child)::after { left: 0.925rem; top: 2rem; }
+}
+
 /* --- Снимки экранов ------------------------------------------------------ */
 
 /* `.snimok` НЕ ПРИВЯЗАН К РАЗДЕЛУ «Как это выглядит», хотя вырос из него.
