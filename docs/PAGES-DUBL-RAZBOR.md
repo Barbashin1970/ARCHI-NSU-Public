@@ -122,4 +122,19 @@ push в main
   со снимком исходника, разданного из корня, как на Vercel. `/ARCHI-NSU-Public/net/takoy/stranicy` —
   404 со стилями, снимок побайтно как у исходной `404.html`; адрес без косой — 301 на адрес
   с косой; `/ARCHI-NSU-Public/README.md` и `/ARCHI-NSU-Public/tools/dlya_pages.py` — 404.
-- **Живой сайт** — после включения Pages (шаг 1 инструкции): запись ниже.
+- **Живой сайт** (коммит `a8e8b90`; запуск workflow
+  [44465530518](https://github.com/Barbashin1970/ARCHI-NSU-Public/actions/runs/44465530518) —
+  успех; выкатки `github-pages` 05:29:38Z и Vercel Production 05:29:40Z, UTC):
+  10 живых адресов — 200 (главная, стили, скрипт, значки, картинки, в том числе `og:image`,
+  `robots.txt`, `sitemap.xml`); 9 лишних — 404 (README, сборщик, разбор, стратегия, исходник
+  снимка, `vercel.json`, workflow, `obnovit-iz-izdeliya.sh`, несуществующий путь — со своей
+  страницей «Такого адреса здесь нет» и стилями по основе). Без косой — 301 на адрес с косой;
+  строчными `/archi-nsu-public/` — 404; `content-type: text/html; charset=utf-8`,
+  `cache-control: max-age=600`. Живая главная побайтно равна локальной копии, снимок живого
+  дубля в Chrome побайтно равен снимку исходника.
+- **Vercel после нового `.vercelignore`** — проверен после выкатки `a8e8b90` (статус коммита
+  «Deployment has completed»): главная, стили, картинка — 200; `/README.md`,
+  `/tools/dlya_pages.py`, `/docs/PAGES-DUBL-RAZBOR.md`, `/.github/workflows/pages.yml`,
+  несуществующий адрес — 404; `x-vizitka: arhi` на месте.
+- **Остаётся за владельцем:** открыть дубль с телефона без VPN (инструкция, шаг 4) — из этой
+  сети замер не сделать.
