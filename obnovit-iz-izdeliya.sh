@@ -31,4 +31,4 @@ cp "$IZDELIE/img/planr.png" img/planr.png
 echo "  Перенесено: style.css, значки, картинки витрины."
 echo "  index.html не тронут — текст переносится руками."
 echo
-echo "  Дальше: git add -A && git commit && git push — Vercel соберёт сам."
+echo "  Дальше: git add -A && git commit && git push — Vercel и GitHub Pages соберут сами."

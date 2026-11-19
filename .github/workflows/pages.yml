@@ -1,0 +1,55 @@
+# Дубль витрины на GitHub Pages: https://barbashin1970.github.io/ARCHI-NSU-Public/
+# Основной сайт — Vercel (публикует корень как есть); из российских сетей без VPN он не
+# открывается, а github.io открывается. Pages раздаёт сайт в подпапке репозитория, поэтому
+# сюда идёт копия с адресами под /<имя репозитория> — tools/dlya_pages.py.
+# Разбор: docs/PAGES-DUBL-RAZBOR.md.
+# Включить один раз: Settings → Pages → Build and deployment → Source: GitHub Actions.
+# Версии действий сверены по API релизов 19.11.2026: checkout v7.0.1, configure-pages v6.0.0,
+# upload-pages-artifact v5.0.0, deploy-pages v5.0.1. С deploy-pages@v4 (2024) запуск падал:
+# «No artifacts named github-pages» (урок PROMPT-Professor).
+name: Дубль витрины на GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    # Что считается сайтом, решает PUBLIKUETSYA в tools/dlya_pages.py. Здесь — только то,
+    # что сайтом точно не является: второй список «что публикуется» разошёлся бы с первым.
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "ishodniki-kartinok/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  pages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.publikaciya.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      # Первым — включены ли Pages: если нет, запуск падает здесь, до сборки.
+      # Отсюда же основа и адрес: путь различает регистр имени репозитория.
+      - id: pages
+        uses: actions/configure-pages@v6
+      - name: Копия витрины с адресами под подпапку репозитория
+        run: >-
+          python3 tools/dlya_pages.py
+          --osnova "${{ steps.pages.outputs.base_path }}"
+          --adres "${{ steps.pages.outputs.base_url }}"
+          --vyhod _pages
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _pages
+      - id: publikaciya
+        uses: actions/deploy-pages@v5

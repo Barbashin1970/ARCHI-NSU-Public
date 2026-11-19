@@ -1,3 +1,6 @@
 .vercel
 .DS_Store
 node_modules
+# копия для GitHub Pages: собирается tools/dlya_pages.py, в git не хранится
+_pages/
+__pycache__/
